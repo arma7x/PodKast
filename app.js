@@ -277,16 +277,19 @@ window.addEventListener("load", () => {
 
   localforage.setDriver(localforage.INDEXEDDB);
 
+  // {feedId:meta}
   const T_PODCASTS = localforage.createInstance({
     name: DB_NAME,
     storeName: TABLE_PODCASTS
   });
 
+  // {feedId:{episodeId:meta}
   const T_EPISODES = localforage.createInstance({
     name: DB_NAME,
     storeName: TABLE_EPISODES
   });
 
+  // {feedId:[episodeId]}
   const T_BOOKMARKED = localforage.createInstance({
     name: DB_NAME,
     storeName: TABLE_BOOKMARKED
