@@ -287,13 +287,13 @@ window.addEventListener("load", () => {
     storeName: TABLE_EPISODES
   });
 
-  const TB = localforage.createInstance({
+  const T_BOOKMARKED = localforage.createInstance({
     name: DB_NAME,
     storeName: TABLE_BOOKMARKED
   });
 
   // autoplay, current_podcast(feedId)
-  const TAS = localforage.createInstance({
+  const T_APP_STATE = localforage.createInstance({
     name: DB_NAME,
     storeName: TABLE_APP_STATE
   });
@@ -305,7 +305,7 @@ window.addEventListener("load", () => {
 
   const indexingTableBookmarked = function() {
     const temps = {};
-    TB.iterate((value, key, iterationNumber) => {
+    T_BOOKMARKED.iterate((value, key, iterationNumber) => {
       temps[key] = value;
     })
     .then(() => {
@@ -325,26 +325,31 @@ window.addEventListener("load", () => {
     .then((results) => {
       var tempPodcast = results[1];
       if (tempPodcast == null) {
+        console.log('Podcast !Cached:', id);
         tempPodcast = {};
         tempPodcast['podkastCurrentEpisode'] = results[2].response.items[results[2].response.items.length - 1]['id'];
-        tempPodcast = Object.assign(tempPodcast, results[0].response.feed);
       }
+      tempPodcast = Object.assign(tempPodcast, results[0].response.feed);
       var tempEpisodes = results[3];
       if (tempEpisodes == null) {
         tempEpisodes = {};
       }
       results[2].response.items.forEach((epsd) => {
-        tempEpisodes[epsd['id']] = epsd;
-        tempEpisodes[epsd['id']]['podkastLocalPath'] = false;
-        tempEpisodes[epsd['id']]['podkastLastDuration'] = 0;
+        if (tempEpisodes[epsd['id']] == null) { // !CACHE
+          console.log('Podcast Ep !Cached:', id, epsd['id']);
+          tempEpisodes[epsd['id']] = {};
+          tempEpisodes[epsd['id']]['podkastLocalPath'] = false;
+          tempEpisodes[epsd['id']]['podkastLastDuration'] = 0;
+        }
+        tempEpisodes[epsd['id']] = Object.assign(tempEpisodes[epsd['id']], epsd);
       });
-      // console.log(tempPodcast);
-      // console.log(tempEpisodes);
       return Promise.all([T_PODCASTS.setItem(id.toString(), tempPodcast), T_EPISODES.setItem(id.toString(), tempEpisodes)]);
     })
     .then((saved) => {
       console.log(saved);
       console.log(saved[1][saved[0]['podkastCurrentEpisode']]);
+      // T_PODCASTS.removeItem(id.toString());
+      // T_EPISODES.removeItem(id.toString());
     })
     .catch((err) => {
       console.log(err);
