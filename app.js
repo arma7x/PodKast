@@ -748,6 +748,9 @@ window.addEventListener("load", () => {
               episodePage(this.$router, selected.text, null, {
                 'Download': function(episode) {
                   console.log(selected.text, 'Download', episode);
+                },
+                'Podcast Info': function(episode) {
+                  console.log(selected.text, 'Download', episode);
                 }
               });
               break;
@@ -757,6 +760,9 @@ window.addEventListener("load", () => {
               .then((result) => {
                 episodePage(this.$router, selected.text, result.response.episodes, {
                   'Download': function(episode) {
+                    console.log(selected.text, 'Download', episode);
+                  },
+                  'Podcast Info': function(episode) {
                     console.log(selected.text, 'Download', episode);
                   }
                 });
