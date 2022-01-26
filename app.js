@@ -3,7 +3,8 @@ const APP_STATE = false;
 const KEY = 'PODCASTINDEX_KEY';
 const SECRET = 'PODCASTINDEX_SECRET';
 const DB_NAME = 'PODKAST';
-const TABLE_SUBSCRIBED = 'SUBSCRIBED_PODCASTS';
+const TABLE_PODCASTS = 'PODCASTS';
+const TABLE_SUBSCRIBED = 'SUBSCRIBED_PODCASTS'; // [feedId, feedId, feedId, feedId, ...]
 const TABLE_EPISODES = 'PODCAST_EPISODES';
 const TABLE_BOOKMARKED = 'BOOKMARKED_EPISODES';
 const TABLE_APP_STATE = 'APP_STATE';
@@ -276,12 +277,12 @@ window.addEventListener("load", () => {
 
   localforage.setDriver(localforage.INDEXEDDB);
 
-  const TS = localforage.createInstance({
+  const T_PODCASTS = localforage.createInstance({
     name: DB_NAME,
-    storeName: TABLE_SUBSCRIBED
+    storeName: TABLE_PODCASTS
   });
 
-  const TE = localforage.createInstance({
+  const T_EPISODES = localforage.createInstance({
     name: DB_NAME,
     storeName: TABLE_EPISODES
   });
@@ -317,6 +318,41 @@ window.addEventListener("load", () => {
   }
 
   indexingTableBookmarked();
+
+  const listenPodcast = function(id, $router, onlySync = false) {
+    $router.showLoading();
+    Promise.all([podcastIndex.getFeed(id), T_PODCASTS.getItem(id.toString()), podcastIndex.getFeedEpisodes(id), T_EPISODES.getItem(id.toString())])
+    .then((results) => {
+      var tempPodcast = results[1];
+      if (tempPodcast == null) {
+        tempPodcast = {};
+        tempPodcast['podkastCurrentEpisode'] = results[2].response.items[results[2].response.items.length - 1]['id'];
+        tempPodcast = Object.assign(tempPodcast, results[0].response.feed);
+      }
+      var tempEpisodes = results[3];
+      if (tempEpisodes == null) {
+        tempEpisodes = {};
+      }
+      results[2].response.items.forEach((epsd) => {
+        tempEpisodes[epsd['id']] = epsd;
+        tempEpisodes[epsd['id']]['podkastLocalPath'] = false;
+        tempEpisodes[epsd['id']]['podkastLastDuration'] = 0;
+      });
+      // console.log(tempPodcast);
+      // console.log(tempEpisodes);
+      return Promise.all([T_PODCASTS.setItem(id.toString(), tempPodcast), T_EPISODES.setItem(id.toString(), tempEpisodes)]);
+    })
+    .then((saved) => {
+      console.log(saved);
+      console.log(saved[1][saved[0]['podkastCurrentEpisode']]);
+    })
+    .catch((err) => {
+      console.log(err);
+    })
+    .finally(() => {
+      $router.hideLoading();
+    });
+  }
 
   podcastIndex.getCategories()
   .then((result) => {
@@ -625,11 +661,12 @@ window.addEventListener("load", () => {
       center: function() {},
       right: function() {
         var menu = [
+          {'text': 'Test'},
+          {'text': 'Subscribed Podcasts'},
           {'text': 'Search Podcast'},
           {'text': 'Trending Podcast'},
           {'text': 'Recent Podcast'},
           // {'text': 'Browse Podcast By Categories'},
-          {'text': 'Subscribed Podcasts'},
           {'text': 'Bookmarked Episodes'},
           // {'text': 'Recent Episodes'},
           {'text': 'Random Episodes'},
@@ -639,6 +676,12 @@ window.addEventListener("load", () => {
         ]
         this.$router.showOptionMenu('Menu', menu, 'SELECT', (selected) => {
           switch (selected.text) {
+            case 'Test':
+              listenPodcast(75075, this.$router);
+              break;
+            case 'Subscribed Podcasts':
+              // TODO
+              break;
             case 'Search Podcast':
               setTimeout(() => {
                 const menu = [{'text': 'Search Podcasts'}, {'text': 'Search Podcasts by Title'}, {'text': 'Search Episodes by Person'}];
@@ -694,9 +737,6 @@ window.addEventListener("load", () => {
                 //console.log(selected.text);
               //}, () => {});
               //break;
-            case 'Subscribed Podcasts':
-              // TODO
-              break;
             case 'Bookmarked Episodes':
               episodePage(this.$router, selected.text, null, {
                 'Download': function(episode) {
