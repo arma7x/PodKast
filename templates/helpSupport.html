@@ -1,0 +1,20 @@
+<div class="kui-flex-wrap">
+  <style>
+    pre {
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      margin:0px;
+      padding:0px;
+      width: 220px;
+    }
+  </style>
+  <ul class="kui-list kai-container">
+    {{#list}}
+    <li class="helpSupportNav kui-divider">
+      <span>
+        <pre style="font-size:12px;">{{ question }}</pre>
+      </span>
+    </li>
+    {{/list}}
+  </ul>
+</div>
