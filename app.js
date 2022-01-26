@@ -674,9 +674,8 @@ window.addEventListener("load", () => {
           {'text': 'Search Podcast'},
           {'text': 'Trending Podcast'},
           {'text': 'Recent Podcast'},
-          // {'text': 'Browse Podcast By Categories'},
+          {'text': 'Recent Podcast By Category'},
           {'text': 'Bookmarked Episodes'},
-          // {'text': 'Recent Episodes'},
           {'text': 'Random Episodes'},
           {'text': 'Help & Support'},
           {'text': 'Changelogs'},
@@ -740,11 +739,11 @@ window.addEventListener("load", () => {
                 }, () => {});
               }, 100);
               break;
-            //case 'Browse Podcast By Categories':
-              //this.$router.showOptionMenu('Categories', this.$state.getState('CATEGORIES'), 'SELECT', (selected) => {
-                //console.log(selected.text);
-              //}, () => {});
-              //break;
+            case 'Recent Podcast By Category':
+              this.$router.showOptionMenu('Categories', this.$state.getState('CATEGORIES'), 'SELECT', (selected) => {
+                console.log(selected.text);
+              }, () => {});
+              break;
             case 'Bookmarked Episodes':
               episodePage(this.$router, selected.text, null, {
                 'Download': function(episode) {
@@ -752,23 +751,6 @@ window.addEventListener("load", () => {
                 }
               });
               break;
-            //case 'Recent Episodes':
-              //this.$router.showLoading();
-              //podcastIndex.getRecentEpisodes()
-              //.then((result) => {
-                //episodePage(this.$router, selected.text, result.response.items, {
-                  //'Download': function(episode) {
-                    //console.log(selected.text, 'Download', episode);
-                  //}
-                //});
-              //})
-              //.catch((err) => {
-                //console.log(err);
-              //})
-              //.finally(() => {
-                //this.$router.hideLoading();
-              //});
-              //break;
             case 'Random Episodes':
               this.$router.showLoading();
               podcastIndex.getRandomEpisodes()
