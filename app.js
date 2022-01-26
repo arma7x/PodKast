@@ -1,10 +1,12 @@
 const APP_VERSION = '1.0.0';
+const APP_STATE = false;
 const KEY = 'PODCASTINDEX_KEY';
 const SECRET = 'PODCASTINDEX_SECRET';
 const DB_NAME = 'PODKAST';
 const TABLE_SUBSCRIBED = 'SUBSCRIBED_PODCASTS';
 const TABLE_EPISODES = 'PODCAST_EPISODES';
 const TABLE_BOOKMARKED = 'BOOKMARKED_EPISODES';
+const TABLE_APP_STATE = 'APP_STATE';
 const CATEGORIES = 'CATEGORIES';
 const EP_STATES = [TABLE_BOOKMARKED];
 
@@ -289,12 +291,18 @@ window.addEventListener("load", () => {
     storeName: TABLE_BOOKMARKED
   });
 
+  // autoplay, current_podcast(feedId)
+  const TAS = localforage.createInstance({
+    name: DB_NAME,
+    storeName: TABLE_APP_STATE
+  });
+
   const state = new KaiState({
     [CATEGORIES]: [],
     [TABLE_BOOKMARKED]: {},
   });
 
-  const scanTableBookmarked = function() {
+  const indexingTableBookmarked = function() {
     const temps = {};
     TB.iterate((value, key, iterationNumber) => {
       temps[key] = value;
@@ -308,7 +316,7 @@ window.addEventListener("load", () => {
     });
   }
 
-  scanTableBookmarked();
+  indexingTableBookmarked();
 
   podcastIndex.getCategories()
   .then((result) => {
@@ -552,6 +560,7 @@ window.addEventListener("load", () => {
         window.localStorage.setItem('APP_VERSION', APP_VERSION);
         return;
       }
+      APP_STATE = true;
     },
     unmounted: function() {},
     methods: {
