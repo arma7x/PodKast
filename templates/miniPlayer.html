@@ -1,0 +1,29 @@
+<div class="kui-option-menu">
+  <style>
+    pre.mini_title {
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      margin: 2px 0px 0px 0px;
+      padding: 0px;
+      font-size: 13px;
+      width: 220px;
+      max-height: 30px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  </style>
+  <div class="kui-option-title" style="overflow:hidden;">{{ episode.feedTitle }}</div>
+  <div class="kui-option-body kai-padding-5">
+    <div style="display:flex;flex-direction:column;justify-content:center;align-items:center;">
+      <img style="border-radius:5px;" height="100px" width="100px" src="{{ episode.image }}"/>
+      <pre class="mini_title">{{ episode.title }}</pre>
+    </div>
+    <div>
+      <input id="mini_duration_slider" style="width:100%" value="0" type="range" min="0" max="100" disabled/>
+    </div>
+    <div class="kui-row-center">
+      <div id="mini_current_time">00:00</div>
+      <div id="mini_duration">00:00</div>
+    </div>
+  </div>
+</div>

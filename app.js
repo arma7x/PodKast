@@ -186,8 +186,14 @@ const resizeImage = function(id, url, cb) {
 window.addEventListener("load", () => {
 
   const DEFAULT_VOLUME = 0.02;
+
   const MAIN_PLAYER = document.createElement("audio");
   MAIN_PLAYER.volume = 1;
+  MAIN_PLAYER.mozAudioChannelType = 'content';
+
+  const MINI_PLAYER = document.createElement("audio");
+  MINI_PLAYER.volume = 1;
+  MINI_PLAYER.mozAudioChannelType = 'content';
 
   // trigger permission for device storage
   (navigator.b2g ? navigator.b2g.getDeviceStorages('sdcard') : navigator.getDeviceStorages('sdcard'))[0].get('trigger_permission');
@@ -229,38 +235,38 @@ window.addEventListener("load", () => {
     }
   })();
 
-  function volumeDown() {
+  function volumeDown(player) {
     if (navigator.b2g) {
       if (navigator.b2g.audioChannelManager && navigator.volumeManager) {
         navigator.volumeManager.requestVolumeDown();
       } else {
-        if (MAIN_PLAYER.volume > 0) {
-          MAIN_PLAYER.volume = parseFloat((MAIN_PLAYER.volume - DEFAULT_VOLUME).toFixed(2));
+        if (player.volume > 0) {
+          player.volume = parseFloat((player.volume - DEFAULT_VOLUME).toFixed(2));
         }
       }
     } else if (navigator.mozAudioChannelManager) {
       navigator.volumeManager.requestDown();
     } else {
-      if (MAIN_PLAYER.volume > 0) {
-        MAIN_PLAYER.volume = parseFloat((MAIN_PLAYER.volume - DEFAULT_VOLUME).toFixed(2));
+      if (player.volume > 0) {
+        player.volume = parseFloat((player.volume - DEFAULT_VOLUME).toFixed(2));
       }
     }
   }
 
-  function volumeUp() {
+  function volumeUp(player) {
     if (navigator.b2g) {
       if (navigator.b2g.audioChannelManager && navigator.volumeManager) {
         navigator.volumeManager.requestVolumeUp();
       } else {
-        if (MAIN_PLAYER.volume < 1) {
-          MAIN_PLAYER.volume = parseFloat((MAIN_PLAYER.volume + DEFAULT_VOLUME).toFixed(2));
+        if (player.volume < 1) {
+          player.volume = parseFloat((player.volume + DEFAULT_VOLUME).toFixed(2));
         }
       }
     } else if (navigator.mozAudioChannelManager) {
       navigator.volumeManager.requestUp();
     } else {
-      if (MAIN_PLAYER.volume < 1) {
-        MAIN_PLAYER.volume = parseFloat((MAIN_PLAYER.volume + DEFAULT_VOLUME).toFixed(2));
+      if (player.volume < 1) {
+        player.volume = parseFloat((player.volume + DEFAULT_VOLUME).toFixed(2));
       }
     }
   }
@@ -383,25 +389,75 @@ window.addEventListener("load", () => {
     }
   });
 
-  const miniPlayer = function($router) {
+  const miniPlayer = function($router, episode) {
+    // feedTitle title enclosureUrl
+    console.log(episode);
     $router.showBottomSheet(
       new Kai({
         name: 'miniPlayer',
         data: {
-          title: 'title',
-          body: 'body'
+          title: 'miniPlayer',
+          episode: episode,
         },
-        template: `<div class="kui-option-menu"><div class="kui-option-title">{{ title }}</div><div class="kui-option-body kai-padding-5">{{{  body }}}</div></div>`,
-        softKeyText: { left: 'Close', center: '', right: '' },
+        templateUrl: document.location.origin + '/templates/miniPlayer.html',
+        softKeyText: { left: 'Exit', center: '', right: '' },
         softKeyListener: {
           left: function() {
             $router.hideBottomSheet();
           },
-          center: function() {},
+          center: function() {
+            if (MINI_PLAYER.duration > 0 && !MINI_PLAYER.paused) {
+              MINI_PLAYER.pause();
+            } else {
+              MINI_PLAYER.play();
+            }
+          },
           right: function() {}
         },
-        mounted: function() {},
-        unmounted: function() {},
+        mounted: function() {
+          setTimeout(() => {
+            const DURATION_SLIDER = document.getElementById('mini_duration_slider');
+            const CURRENT_TIME = document.getElementById('mini_current_time');
+            const DURATION = document.getElementById('mini_duration');
+            MINI_PLAYER.onloadedmetadata = (evt) => {
+              duration = evt.target.duration;
+              DURATION.innerHTML = convertTime(evt.target.duration);
+              DURATION_SLIDER.setAttribute("max", duration);
+            }
+            MINI_PLAYER.ontimeupdate = (evt) => {
+              var currentTime = evt.target.currentTime;
+              CURRENT_TIME.innerHTML = convertTime(evt.target.currentTime);
+              DURATION_SLIDER.value = currentTime;
+            }
+            MINI_PLAYER.onpause = () => {
+              $router.setSoftKeyCenterText('PLAY');
+            }
+            MINI_PLAYER.onplay = () => {
+              $router.setSoftKeyCenterText('PAUSE');
+            }
+            MINI_PLAYER.src = episode['enclosureUrl'];
+            MINI_PLAYER.play();
+          }, 101);
+        },
+        unmounted: function() {
+          MINI_PLAYER.src = '';
+          MINI_PLAYER.pause();
+          MINI_PLAYER.currentTime = 0;
+        },
+        dPadNavListener: {
+          arrowUp: function() {
+            volumeUp(MINI_PLAYER);
+          },
+          arrowRight: function() {
+            // fast-forward
+          },
+          arrowDown: function() {
+            volumeDown(MINI_PLAYER);
+          },
+          arrowLeft: function() {
+            // rewind
+          },
+        },
         backKeyListener: function(evt) {
           return -1;
         }
@@ -426,10 +482,7 @@ window.addEventListener("load", () => {
           } else {
             data.forEach((i) => {
               if (i['image'] == '' || i['image'] == null)
-                i['thumb'] = '/icons/icon112x112.png';
-              else
-                i['thumb'] = i['image'];
-              //resizeImage(`thumb_${i['feedId']}_${i['id']}`, i['image']);
+                i['image'] = '/icons/icon112x112.png';
             });
             this.setData({ list: data });
           }
@@ -447,7 +500,7 @@ window.addEventListener("load", () => {
         softKeyListener: {
           left: function() {},
           center: function() {
-            miniPlayer($router);
+            miniPlayer($router, this.data.list[this.verticalNavIndex]);
           },
           right: function() {
             const menu = [];
