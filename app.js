@@ -335,7 +335,7 @@ window.addEventListener("load", () => {
       temps[key] = value;
     })
     .then(() => {
-      console.log('Iteration has completed', temps);
+      // console.log('initTableBookmarked', TABLE_BOOKMARKED, temps);
       state.setState(TABLE_BOOKMARKED, temps);
     })
     .catch((err) =>{
@@ -345,6 +345,7 @@ window.addEventListener("load", () => {
   initTableBookmarked();
 
   const addBookmark = function($router, episode) {
+    delete episode['podkastBookmark'];
     playEpisode($router, episode, false)
     .then(() => {
       return T_BOOKMARKED.getItem(episode['feedId'].toString());
@@ -448,6 +449,7 @@ window.addEventListener("load", () => {
   }
 
   const playEpisode = function($router, episode, playable = true) {
+    delete episode['podkastBookmark'];
     return T_EPISODES.getItem(episode['feedId'].toString())
     .then((episodesObj) => {
       if (episodesObj == null) {
@@ -637,16 +639,11 @@ window.addEventListener("load", () => {
         templateUrl: document.location.origin + '/templates/episodePage.html',
         mounted: function() {
           this.$router.setHeaderTitle(title);
+          const bookmarkList = state.getState(TABLE_BOOKMARKED);
           if (data == null) {
-            
+            this.methods.processDataNull(bookmarkList);
           } else {
-            data.forEach((i) => {
-              if (i['feedImage'] == '' || i['feedImage'] == null)
-                i['feedImage'] = '/icons/icon112x112.png';
-              if (i['image'] == '' || i['image'] == null)
-                i['image'] = i['feedImage'];
-            });
-            this.setData({ list: data });
+            this.methods.processData(bookmarkList);
           }
           state.addStateListener(TABLE_BOOKMARKED, this.methods.listenState);
         },
@@ -654,28 +651,95 @@ window.addEventListener("load", () => {
           state.removeStateListener(TABLE_BOOKMARKED, this.methods.listenState);
         },
         methods: {
-          listenState: function(data) {
-            console.log(TABLE_BOOKMARKED, data);
+          listenState: function(updated) {
+            // console.log('listenState', TABLE_BOOKMARKED, updated);
+            if (data == null) {
+              this.methods.processDataNull(updated);
+            } else {
+              this.methods.processData(updated);
+            }
+          },
+          processData: function(bookmarkList) {
+            // console.log('processData', TABLE_BOOKMARKED, bookmarkList);
+            data.forEach((i) => {
+              i['podkastBookmark'] = false;
+              if (i['feedImage'] == '' || i['feedImage'] == null)
+                i['feedImage'] = '/icons/icon112x112.png';
+              if (i['image'] == '' || i['image'] == null)
+                i['image'] = i['feedImage'];
+              if (bookmarkList[i['feedId']] != null) {
+                if (bookmarkList[i['feedId']].indexOf(i['id']) > -1)
+                  i['podkastBookmark'] = true;
+              }
+            });
+            this.setData({ list: data });
+          },
+          processDataNull: function(bookmarkList) {
+            if (Object.keys(bookmarkList).length === 0) {
+              this.setData({ list: [] });
+              return;
+            }
+            var temp = [];
+            var bookmarkSize = 0;
+            for (var feedId in bookmarkList) {
+              bookmarkSize += bookmarkList[feedId].length;
+            }
+            for (var feedId in bookmarkList) {
+              const cur = feedId;
+              T_EPISODES.getItem(feedId)
+              .then((episodes) => {
+                bookmarkList[cur].forEach((id) => {
+                  if (episodes[id]) {
+                    if (episodes[id]['feedImage'] == '' || episodes[id]['feedImage'] == null)
+                      episodes[id]['feedImage'] = '/icons/icon112x112.png';
+                    if (episodes[id]['image'] == '' || episodes[id]['image'] == null)
+                      episodes[id]['image'] = episodes[id]['feedImage'];
+                    episodes[id]['podkastBookmark'] = true;
+                    temp.push(episodes[id]);
+                  }
+                  bookmarkSize--;
+                  if (bookmarkSize <= 0) {
+                    if (temp.length < this.verticalNavIndex + 1) {
+                      this.verticalNavIndex--;
+                    }
+                    this.setData({ list: temp });
+                  }
+                });
+              });
+            }
           }
         },
         softKeyText: { left: 'Info', center: 'PLAY', right: 'More' },
         softKeyListener: {
-          left: function() {},
+          left: function() {
+            if (this.data.list[this.verticalNavIndex] == null)
+              return;
+          },
           center: function() {
-            playEpisode($router, this.data.list[this.verticalNavIndex]);
+            if (this.data.list[this.verticalNavIndex] == null)
+              return;
+            playEpisode($router, JSON.parse(JSON.stringify(this.data.list[this.verticalNavIndex])));
           },
           right: function() {
-            const menu = [{ 'text': 'Add Bookmark' }, { 'text': 'Remove Bookmark' }];
+            if (this.data.list[this.verticalNavIndex] == null)
+              return;
+            const menu = [];
+            if (data !== null) {
+              if (this.data.list[this.verticalNavIndex]['podkastBookmark'] === false)
+                menu.push({ 'text': 'Add Bookmark' });
+            }
+            if (this.data.list[this.verticalNavIndex]['podkastBookmark'])
+              menu.push({ 'text': 'Remove Bookmark' });
             for (var k in rightSoftKeyCallback) {
               menu.push({ 'text': k });
             }
             this.$router.showOptionMenu('More', menu, 'SELECT', (selected) => {
               if (rightSoftKeyCallback[selected.text]) {
-                rightSoftKeyCallback[selected.text](this.data.list[this.verticalNavIndex]);
+                rightSoftKeyCallback[selected.text](JSON.parse(JSON.stringify(this.data.list[this.verticalNavIndex])));
               } else if (selected.text === 'Add Bookmark') {
-                addBookmark($router, this.data.list[this.verticalNavIndex]);
+                addBookmark($router, JSON.parse(JSON.stringify(this.data.list[this.verticalNavIndex])));
               } else if (selected.text === 'Remove Bookmark') {
-                removeBookmark($router, this.data.list[this.verticalNavIndex]);
+                removeBookmark($router, JSON.parse(JSON.stringify(this.data.list[this.verticalNavIndex])));
               }
             }, () => {});
           }

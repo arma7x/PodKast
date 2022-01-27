@@ -23,18 +23,15 @@
       object-fit:cover;
       max-width:50px;
       max-height:50px;
+      border-radius: 5px;
     }
     .wrapper-info {
       height: 50px;
-      display: flex;
       width:calc(100% - 55px);
-      flex-direction: column;
-      justify-content: flex-start;
       padding: 5px 5px 0px 5px;
       margin-bottom: 5px;
       overflow: hidden;
-      white-space: pre-wrap!important;
-      word-break: break-word!important;
+      position: relative;
     }
     .wrapper-info-child {
       font-size: 10px;
@@ -55,6 +52,7 @@
         </div>
         <div class="wrapper-info">
           <pre class="wrapper-info-child">{{ title }}</pre>
+          {{#podkastBookmark}}<span style="position:absolute;margin-top:-1px;color:#E7A136;padding:2px;bottom:0;right:0;">&#9733;</span>{{/podkastBookmark}}
         </div>
       </div>
     </li>
