@@ -329,7 +329,7 @@ window.addEventListener("load", () => {
     [TABLE_BOOKMARKED]: {},
   });
 
-  const indexingTableBookmarked = function() {
+  const initTableBookmarked = function() {
     const temps = {};
     T_BOOKMARKED.iterate((value, key, iterationNumber) => {
       temps[key] = value;
@@ -342,7 +342,50 @@ window.addEventListener("load", () => {
       console.log(err);
     });
   }
-  indexingTableBookmarked();
+  initTableBookmarked();
+
+  const addBookmark = function($router, episode) {
+    playEpisode($router, episode, false)
+    .then(() => {
+      return T_BOOKMARKED.getItem(episode['feedId'].toString());
+    })
+    .then((episodes) => {
+      if (episodes == null) {
+        episodes = [];
+      }
+      episodes.push(episode['id']);
+      return T_BOOKMARKED.setItem(episode['feedId'].toString(), episodes);
+    })
+    .then(() => {
+      $router.showToast('DONE BOOKMARK');
+      initTableBookmarked();
+    })
+    .catch((err) => {
+      $router.showToast('FAIL');
+    });
+  }
+
+  const removeBookmark = function($router, episode) {
+    T_BOOKMARKED.getItem(episode['feedId'].toString())
+    .then((episodes) => {
+      if (episodes == null) {
+        episodes = [];
+      }
+      if (episodes.indexOf(episode['id']) > -1) {
+        episodes.splice(episodes.indexOf(episode['id']), 1);
+      }
+      if (episodes.length === 0)
+        return T_BOOKMARKED.removeItem(episode['feedId'].toString());
+      return T_BOOKMARKED.setItem(episode['feedId'].toString(), episodes);
+    })
+    .then(() => {
+      $router.showToast('DONE REMOVE BOOKMARK');
+      initTableBookmarked();
+    })
+    .catch((err) => {
+      $router.showToast('FAIL');
+    });
+  }
 
   const initCategories = function() {
     podcastIndex.getCategories()
@@ -363,7 +406,7 @@ window.addEventListener("load", () => {
   }
   initCategories();
 
-  const listenPodcast = function(id, $router, onlySync = false) {
+  const listenPodcast = function(id, $router, playable = true) {
     $router.showLoading();
     Promise.all([podcastIndex.getFeed(id), T_PODCASTS.getItem(id.toString()), podcastIndex.getFeedEpisodes(id), T_EPISODES.getItem(id.toString())])
     .then((results) => {
@@ -404,8 +447,8 @@ window.addEventListener("load", () => {
     });
   }
 
-  const playEpisode = function($router, episode) {
-    T_EPISODES.getItem(episode['feedId'].toString())
+  const playEpisode = function($router, episode, playable = true) {
+    return T_EPISODES.getItem(episode['feedId'].toString())
     .then((episodesObj) => {
       if (episodesObj == null) {
         episodesObj = {};
@@ -419,13 +462,16 @@ window.addEventListener("load", () => {
       }
       tempEpisode = Object.assign(tempEpisode, episode);
       episodesObj[episode['id']] = tempEpisode;
-      T_EPISODES.setItem(episode['feedId'].toString(), episodesObj)
-      miniPlayer(router, episodesObj[episode['id']]);
+      T_EPISODES.setItem(episode['feedId'].toString(), episodesObj);
+      if (playable)
+        miniPlayer(router, episodesObj[episode['id']]);
       // console.log(episodesObj,  episodesObj[episode['id']]);
+      return Promise.resolve(episodesObj[episode['id']]);
     })
     .catch((err) => {
       miniPlayer(router, episode);
       // console.log(err);
+      return Promise.reject(err);
     });
   }
 
@@ -619,12 +665,18 @@ window.addEventListener("load", () => {
             playEpisode($router, this.data.list[this.verticalNavIndex]);
           },
           right: function() {
-            const menu = [];
+            const menu = [{ 'text': 'Add Bookmark' }, { 'text': 'Remove Bookmark' }];
             for (var k in rightSoftKeyCallback) {
               menu.push({ 'text': k });
             }
             this.$router.showOptionMenu('More', menu, 'SELECT', (selected) => {
-              rightSoftKeyCallback[selected.text](this.data.list[this.verticalNavIndex]);
+              if (rightSoftKeyCallback[selected.text]) {
+                rightSoftKeyCallback[selected.text](this.data.list[this.verticalNavIndex]);
+              } else if (selected.text === 'Add Bookmark') {
+                addBookmark($router, this.data.list[this.verticalNavIndex]);
+              } else if (selected.text === 'Remove Bookmark') {
+                removeBookmark($router, this.data.list[this.verticalNavIndex]);
+              }
             }, () => {});
           }
         },
