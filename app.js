@@ -121,38 +121,61 @@ const getHeaders = function() {
 }
 
 const podcastIndex = {
+  makeUrl: function(url, query = {}) {
+    var headers = {};
+    if (localStorage.getItem(KEY) == null || localStorage.getItem(SECRET) == null) {
+      query = {
+        url: btoa(url),
+        query: btoa(JSON.stringify(query))
+      }
+      url = 'https://malaysiaapi.herokuapp.com/podcastindex/v1/proxy';
+    } else {
+      headers = getHeaders();
+    }
+    return { url, query, headers };
+  },
   getCategories: function() {
-    return xhr('GET', 'https://api.podcastindex.org/api/1.0/categories/list', {}, {}, getHeaders());
+    const obj = this.makeUrl('https://api.podcastindex.org/api/1.0/categories/list', {});
+    return xhr('GET', obj.url, {}, obj.query, obj.headers);
   },
   getTrending: function() {
-    return xhr('GET', 'https://api.podcastindex.org/api/1.0/podcasts/trending', {}, {}, getHeaders());
+    const obj = this.makeUrl('https://api.podcastindex.org/api/1.0/podcasts/trending', {});
+    return xhr('GET', obj.url, {}, obj.query, obj.headers);
   },
   getRecentFeeds: function(categories = []) {
     const params = {};
     if (categories.length > 0)
       params['cat'] = categories.join(',');
-    return xhr('GET', 'https://api.podcastindex.org/api/1.0/recent/feeds', {}, params, getHeaders());
+    const obj = this.makeUrl('https://api.podcastindex.org/api/1.0/recent/feeds', params);
+    return xhr('GET', obj.url, {}, obj.query, obj.headers);
   },
   getRecentEpisodes: function() {
-    return xhr('GET', 'https://api.podcastindex.org/api/1.0/recent/episodes', {}, {}, getHeaders());
+    const obj = this.makeUrl('https://api.podcastindex.org/api/1.0/recent/episodes', {});
+    return xhr('GET', obj.url, {}, obj.query, obj.headers);
   },
   getRandomEpisodes: function(max = 40) {
-    return xhr('GET', 'https://api.podcastindex.org/api/1.0/episodes/random', {}, {max}, getHeaders());
+    const obj = this.makeUrl('https://api.podcastindex.org/api/1.0/episodes/random', {max});
+    return xhr('GET', obj.url, {}, obj.query, obj.headers);
   },
   searchByTerm: function(q) {
-    return xhr('GET', 'https://api.podcastindex.org/api/1.0/search/byterm', {}, {q}, getHeaders());
+    const obj = this.makeUrl('https://api.podcastindex.org/api/1.0/search/byterm', {q});
+    return xhr('GET', obj.url, {}, obj.query, obj.headers);
   },
   searchByTitle: function(q) {
-    return xhr('GET', 'https://api.podcastindex.org/api/1.0/search/bytitle', {}, {q}, getHeaders());
+    const obj = this.makeUrl('https://api.podcastindex.org/api/1.0/search/bytitle', {q});
+    return xhr('GET', obj.url, {}, obj.query, obj.headers);
   },
   searchByPerson: function(q) {
-    return xhr('GET', 'https://api.podcastindex.org/api/1.0/search/byperson', {}, {q}, getHeaders());
+    const obj = this.makeUrl('https://api.podcastindex.org/api/1.0/search/byperson', {q});
+    return xhr('GET', obj.url, {}, obj.query, obj.headers);
   },
   getFeed: function(id) {
-    return xhr('GET', 'https://api.podcastindex.org/api/1.0/podcasts/byfeedid', {}, {id}, getHeaders());
+    const obj = this.makeUrl('https://api.podcastindex.org/api/1.0/podcasts/byfeedid', {id});
+    return xhr('GET', obj.url, {}, obj.query, obj.headers);
   },
   getFeedEpisodes: function(id) {
-    return xhr('GET', 'https://api.podcastindex.org/api/1.0/episodes/byfeedid', {}, {id}, getHeaders());
+    const obj = this.makeUrl('https://api.podcastindex.org/api/1.0/episodes/byfeedid', {id});
+    return xhr('GET', obj.url, {}, obj.query, obj.headers);
   },
 }
 
