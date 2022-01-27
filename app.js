@@ -395,13 +395,13 @@ window.addEventListener("load", () => {
       }
       tempEpisode = Object.assign(tempEpisode, episode);
       episodesObj[episode['id']] = tempEpisode;
-      console.log(episodesObj,  episodesObj[episode['id']]);
-      // T_EPISODES.setItem(episode['feedId'].toString(), episodesObj)
-      // miniPlayer(router, episodesObj[episode['id']]);
+      T_EPISODES.setItem(episode['feedId'].toString(), episodesObj)
+      miniPlayer(router, episodesObj[episode['id']]);
+      // console.log(episodesObj,  episodesObj[episode['id']]);
     })
     .catch((err) => {
-      // miniPlayer(router, episode);
-      console.log(err);
+      miniPlayer(router, episode);
+      // console.log(err);
     });
   }
 
