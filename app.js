@@ -1,5 +1,5 @@
+var APP_STATE = false;
 const APP_VERSION = '1.0.0';
-const APP_STATE = false;
 const KEY = 'PODCASTINDEX_KEY';
 const SECRET = 'PODCASTINDEX_SECRET';
 const DB_NAME = 'PODKAST';
