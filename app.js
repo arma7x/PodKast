@@ -392,6 +392,7 @@ window.addEventListener("load", () => {
     .then((saved) => {
       console.log(saved);
       console.log(saved[1][saved[0]['podkastCurrentEpisode']]);
+      // MAIN_PLAYER
       // T_PODCASTS.removeItem(id.toString());
       // T_EPISODES.removeItem(id.toString());
     })
@@ -493,7 +494,8 @@ window.addEventListener("load", () => {
 
   const miniPlayer = function($router, episode) {
     // feedTitle title enclosureUrl
-    console.log(episode);
+    // console.log(episode);
+    var DURATION_SLIDER, CURRENT_TIME, DURATION;
     $router.showBottomSheet(
       new Kai({
         name: 'miniPlayer',
@@ -518,33 +520,43 @@ window.addEventListener("load", () => {
         },
         mounted: function() {
           setTimeout(() => {
-            const DURATION_SLIDER = document.getElementById('mini_duration_slider');
-            const CURRENT_TIME = document.getElementById('mini_current_time');
-            const DURATION = document.getElementById('mini_duration');
-            MINI_PLAYER.onloadedmetadata = (evt) => {
-              duration = evt.target.duration;
-              DURATION.innerHTML = convertTime(evt.target.duration);
-              DURATION_SLIDER.setAttribute("max", duration);
-            }
-            MINI_PLAYER.ontimeupdate = (evt) => {
-              var currentTime = evt.target.currentTime;
-              CURRENT_TIME.innerHTML = convertTime(evt.target.currentTime);
-              DURATION_SLIDER.value = currentTime;
-            }
-            MINI_PLAYER.onpause = () => {
-              $router.setSoftKeyCenterText('PLAY');
-            }
-            MINI_PLAYER.onplay = () => {
-              $router.setSoftKeyCenterText('PAUSE');
-            }
+            DURATION_SLIDER = document.getElementById('mini_duration_slider');
+            CURRENT_TIME = document.getElementById('mini_current_time');
+            DURATION = document.getElementById('mini_duration');
+            MINI_PLAYER.addEventListener('loadedmetadata', this.methods.onloadedmetadata);
+            MINI_PLAYER.addEventListener('timeupdate', this.methods.ontimeupdate);
+            MINI_PLAYER.addEventListener('pause', this.methods.onpause);
+            MINI_PLAYER.addEventListener('play', this.methods.onplay);
             MINI_PLAYER.src = episode['enclosureUrl'];
             MINI_PLAYER.play();
-          }, 101);
+          }, 100);
         },
         unmounted: function() {
+          MINI_PLAYER.removeEventListener('loadedmetadata', this.methods.onloadedmetadata);
+          MINI_PLAYER.removeEventListener('timeupdate', this.methods.ontimeupdate);
+          MINI_PLAYER.removeEventListener('pause', this.methods.onpause);
+          MINI_PLAYER.removeEventListener('play', this.methods.onplay);
           MINI_PLAYER.src = '';
           MINI_PLAYER.pause();
           MINI_PLAYER.currentTime = 0;
+        },
+        methods: {
+          onloadedmetadata: function(evt) {
+            var duration = evt.target.duration;
+            DURATION.innerHTML = convertTime(evt.target.duration);
+            DURATION_SLIDER.setAttribute("max", duration);
+          },
+          ontimeupdate: function(evt) {
+            var currentTime = evt.target.currentTime;
+            CURRENT_TIME.innerHTML = convertTime(evt.target.currentTime);
+            DURATION_SLIDER.value = currentTime;
+          },
+          onpause: function() {
+            $router.setSoftKeyCenterText('PLAY');
+          },
+          onplay: function() {
+            $router.setSoftKeyCenterText('PAUSE');
+          }
         },
         dPadNavListener: {
           arrowUp: function() {
