@@ -319,8 +319,26 @@ window.addEventListener("load", () => {
       console.log(err);
     });
   }
-
   indexingTableBookmarked();
+
+  const initCategories = function() {
+    podcastIndex.getCategories()
+    .then((result) => {
+      if (Object.keys(result.response.feeds).length > 0) {
+        const temp = [];
+        for (var x in result.response.feeds) {
+          result.response.feeds[x]['text'] = result.response.feeds[x]['name'];
+          result.response.feeds[x]['checked'] = false;
+          temp.push(result.response.feeds[x]);
+        }
+        state.setState('CATEGORIES', temp);
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+    })
+  }
+  initCategories();
 
   const listenPodcast = function(id, $router, onlySync = false) {
     $router.showLoading();
@@ -362,21 +380,30 @@ window.addEventListener("load", () => {
     });
   }
 
-  podcastIndex.getCategories()
-  .then((result) => {
-    if (Object.keys(result.response.feeds).length > 0) {
-      const temp = [];
-      for (var x in result.response.feeds) {
-        result.response.feeds[x]['text'] = result.response.feeds[x]['name'];
-        result.response.feeds[x]['checked'] = false;
-        temp.push(result.response.feeds[x]);
+  const playEpisode = function($router, episode) {
+    T_EPISODES.getItem(episode['feedId'].toString())
+    .then((episodesObj) => {
+      if (episodesObj == null) {
+        episodesObj = {};
       }
-      state.setState('CATEGORIES', temp);
-    }
-  })
-  .catch((err) => {
-    console.log(err);
-  })
+      var tempEpisode = episodesObj[episode['id']];
+      if (tempEpisode == null) { // !CACHE
+        console.log('Podcast Ep !Cached:', episode['feedId'], episode['id']);
+        tempEpisode = {};
+        tempEpisode['podkastLocalPath'] = false;
+        tempEpisode['podkastLastDuration'] = 0;
+      }
+      tempEpisode = Object.assign(tempEpisode, episode);
+      episodesObj[episode['id']] = tempEpisode;
+      console.log(episodesObj,  episodesObj[episode['id']]);
+      // T_EPISODES.setItem(episode['feedId'].toString(), episodesObj)
+      // miniPlayer(router, episodesObj[episode['id']]);
+    })
+    .catch((err) => {
+      // miniPlayer(router, episode);
+      console.log(err);
+    });
+  }
 
   const changelogs = new Kai({
     name: 'changelogs',
@@ -554,7 +581,7 @@ window.addEventListener("load", () => {
         softKeyListener: {
           left: function() {},
           center: function() {
-            miniPlayer($router, this.data.list[this.verticalNavIndex]);
+            playEpisode($router, this.data.list[this.verticalNavIndex]);
           },
           right: function() {
             const menu = [];
