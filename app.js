@@ -533,8 +533,10 @@ window.addEventListener("load", () => {
             
           } else {
             data.forEach((i) => {
+              if (i['feedImage'] == '' || i['feedImage'] == null)
+                i['feedImage'] = '/icons/icon112x112.png';
               if (i['image'] == '' || i['image'] == null)
-                i['image'] = '/icons/icon112x112.png';
+                i['image'] = i['feedImage'];
             });
             this.setData({ list: data });
           }
