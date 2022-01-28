@@ -363,7 +363,7 @@ window.addEventListener("load", () => {
     .then(() =>{
       $router.showToast(msg);
       if (msg === 'SUBSCRIBED')
-        listenPodcast($router, id);
+        syncPodcast($router, id, false);
       initTableSubscribed();
     })
     .catch((err) =>{
@@ -449,7 +449,7 @@ window.addEventListener("load", () => {
   }
   initCategories();
 
-  const listenPodcast = function($router, id, playable = true) {
+  const syncPodcast = function($router, id, playable = true) {
     $router.showLoading();
     Promise.all([podcastIndex.getFeed(id), T_PODCASTS.getItem(id.toString()), podcastIndex.getFeedEpisodes(id), T_EPISODES.getItem(id.toString())])
     .then((results) => {
@@ -924,11 +924,15 @@ window.addEventListener("load", () => {
               { 'text': 'Episodes' },
               { 'text': this.data.list[this.verticalNavIndex]['podkastSubscribe'] ? 'Unsubscribe' : 'Subscribe' }
             ];
+            if (this.data.list[this.verticalNavIndex]['podkastSubscribe'])
+              menu.push({ 'text': 'Sync Podcast' });
             this.$router.showOptionMenu('More', menu, 'SELECT', (selected) => {
               if (['Unsubscribe', 'Subscribe'].indexOf(selected.text) > -1) {
                 subscribePodcast(this.$router, this.data.list[this.verticalNavIndex].id);
               } else if (selected.text === 'Episodes') {
                 console.log(this.data.list[this.verticalNavIndex].id);
+              } else if (selected.text === 'Sync Podcast') {
+                syncPodcast(this.$router, this.data.list[this.verticalNavIndex].id, false);
               }
             }, () => {});
           }
@@ -1053,7 +1057,7 @@ window.addEventListener("load", () => {
         this.$router.showOptionMenu('Menu', menu, 'SELECT', (selected) => {
           switch (selected.text) {
             case 'Test':
-              listenPodcast(this.$router, 75075);
+              syncPodcast(this.$router, 75075);
               break;
             case 'Subscribed Podcasts':
               podcastPage(this.$router, selected.text, null);
