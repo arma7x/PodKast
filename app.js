@@ -741,6 +741,7 @@ window.addEventListener("load", () => {
                 subscribePodcast(this.$router, this.data.list[this.verticalNavIndex].id);
               } else if (selected.text === 'Episodes') {
                 this.$router.showLoading();
+                // If offline, get from cache
                 podcastIndex.getFeedEpisodes(this.data.list[this.verticalNavIndex].id)
                 .then((result) => {
                   episodePage(this.$router, this.data.list[this.verticalNavIndex].title, result.response.items, {
@@ -867,12 +868,12 @@ window.addEventListener("load", () => {
       right: function() {
         var menu = [
           {'text': 'Test'},
-          {'text': 'Subscribed Podcasts'},
+          {'text': 'Subscribed Podcasts'}, // CACHE
           {'text': 'Search Podcast'},
           {'text': 'Trending Podcast'},
           {'text': 'Recent Podcast'},
           {'text': 'Recent Podcast By Category'},
-          {'text': 'Bookmarked Episodes'},
+          {'text': 'Bookmarked Episodes'}, // CACHE
           {'text': 'Random Episodes'},
           {'text': 'Help & Support'},
           {'text': 'Changelogs'},
