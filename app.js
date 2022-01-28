@@ -757,8 +757,8 @@ window.addEventListener("load", () => {
               this.data.list.forEach((l) => {
                 const t = document.getElementById(`title_${l.feedId}_${l.id}`);
                 if (t != null) {
-                  if (t.textContent.length >= 80) {
-                    t.textContent = t.textContent.slice(0, 77) + '...';
+                  if (t.textContent.length >= 60) {
+                    t.textContent = t.textContent.slice(0, 67) + '...';
                   }
                 }
               });
@@ -905,8 +905,8 @@ window.addEventListener("load", () => {
               this.data.list.forEach((l) => {
                 const t = document.getElementById(`title_${l.id}`);
                 if (t != null) {
-                  if (t.textContent.length >= 80) {
-                    t.textContent = t.textContent.slice(0, 77) + '...';
+                  if (t.textContent.length >= 60) {
+                    t.textContent = t.textContent.slice(0, 67) + '...';
                   }
                 }
               });
