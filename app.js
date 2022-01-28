@@ -781,10 +781,10 @@ window.addEventListener("load", () => {
   const home = new Kai({
     name: 'home',
     data: {
-      title: 'PodKast',
+      title: 'PodKast Title - Podcast Ep Subtitle',
       album_art: '/icons/icon112x112.png',
       play_icon: '/icons/play.png',
-      slider_value: 0,
+      slider_value: 30,
       slider_max: 100,
       current_time: '00:00',
       duration: '00:00',
