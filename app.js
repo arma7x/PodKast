@@ -901,7 +901,24 @@ window.addEventListener("load", () => {
                       break;
                     case 'Search Episodes by Person':
                       this.methods.showInputDialog(selected.text, 'Enter person name', (term) => {
-                        podcastIndex.searchByPerson(term);
+                        this.$router.showLoading();
+                        podcastIndex.searchByPerson(term)
+                        .then((result) => {
+                          episodePage(this.$router, selected.text, result.response.items, {
+                            'Download': function(episode) {
+                              console.log(selected.text, 'Download', episode);
+                            },
+                            'Podcast Info': function(episode) {
+                              console.log(selected.text, 'Podcast Info', episode);
+                            }
+                          });
+                        })
+                        .catch((err) => {
+                          console.log(err);
+                        })
+                        .finally(() => {
+                          this.$router.hideLoading();
+                        });
                       });
                       break;
                   }
@@ -945,7 +962,7 @@ window.addEventListener("load", () => {
                   console.log(selected.text, 'Download', episode);
                 },
                 'Podcast Info': function(episode) {
-                  console.log(selected.text, 'Download', episode);
+                  console.log(selected.text, 'Podcast Info', episode);
                 }
               });
               break;
@@ -958,7 +975,7 @@ window.addEventListener("load", () => {
                     console.log(selected.text, 'Download', episode);
                   },
                   'Podcast Info': function(episode) {
-                    console.log(selected.text, 'Download', episode);
+                    console.log(selected.text, 'Podcast Info', episode);
                   }
                 });
               })
