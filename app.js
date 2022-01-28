@@ -326,8 +326,23 @@ window.addEventListener("load", () => {
 
   const state = new KaiState({
     [CATEGORIES]: [],
+    [TABLE_SUBSCRIBED]: [],
     [TABLE_BOOKMARKED]: {},
   });
+
+  const initTableSubscribed = function() {
+    localforage.getItem(TABLE_SUBSCRIBED)
+    .then((list) => {
+      if (list == null) {
+        list = [];
+      }
+      state.setState(TABLE_SUBSCRIBED, list);
+    })
+    .catch((err) =>{
+      console.log(err);
+    });
+  }
+  initTableSubscribed();
 
   const initTableBookmarked = function() {
     const temps = {};
@@ -778,6 +793,120 @@ window.addEventListener("load", () => {
 
   const podcastPage = function($router, title, data = null) {
     console.log(title, data);
+    $router.push(
+      new Kai({
+        name: 'podcastPage',
+        data: {
+          title: 'podcastPage',
+          list: []
+        },
+        verticalNavClass: '.pPageNav',
+        templateUrl: document.location.origin + '/templates/podcastPage.html',
+        mounted: function() {
+          this.$router.setHeaderTitle(title);
+          const subscribedList = state.getState(TABLE_SUBSCRIBED);
+          if (data == null) {
+            this.methods.processDataNull(subscribedList);
+          } else {
+            this.methods.processData(subscribedList);
+          }
+          state.addStateListener(TABLE_SUBSCRIBED, this.methods.listenState);
+        },
+        unmounted: function() {
+          state.removeStateListener(TABLE_SUBSCRIBED, this.methods.listenState);
+        },
+        methods: {
+          listenState: function(updated) {
+            // console.log('listenState', TABLE_SUBSCRIBED, updated);
+            if (data == null) {
+              this.methods.processDataNull(updated);
+            } else {
+              this.methods.processData(updated);
+            }
+          },
+          processData: function(subscribedList) {
+            // console.log('processData', TABLE_SUBSCRIBED, subscribedList);
+            data.forEach((i) => {
+              i['podkastSubscribed'] = false;
+              if (i['author'] == null)
+                i['author'] = false;
+              if (i['image'] == '' || i['image'] == null)
+                i['image'] = '/icons/icon112x112.png';
+              if (subscribedList.indexOf(i['id']) > -1)
+                i['podkastSubscribed'] = true;
+            });
+            this.setData({ list: data });
+            //this.methods.trimTitle();
+          },
+          processDataNull: function(subscribedList) {
+            //if (Object.keys(subscribedList).length === 0) {
+              //this.setData({ list: [] });
+              //return;
+            //}
+            //var temp = [];
+            //var bookmarkSize = 0;
+            //for (var feedId in subscribedList) {
+              //bookmarkSize += subscribedList[feedId].length;
+            //}
+            //for (var feedId in subscribedList) {
+              //const cur = feedId;
+              //T_EPISODES.getItem(feedId)
+              //.then((episodes) => {
+                //subscribedList[cur].forEach((id) => {
+                  //if (episodes[id]) {
+                    //if (episodes[id]['feedImage'] == '' || episodes[id]['feedImage'] == null)
+                      //episodes[id]['feedImage'] = '/icons/icon112x112.png';
+                    //if (episodes[id]['image'] == '' || episodes[id]['image'] == null)
+                      //episodes[id]['image'] = episodes[id]['feedImage'];
+                    //episodes[id]['podkastBookmark'] = true;
+                    //temp.push(episodes[id]);
+                  //}
+                  //bookmarkSize--;
+                  //if (bookmarkSize <= 0) {
+                    //if (temp.length < this.verticalNavIndex + 1) {
+                      //this.verticalNavIndex--;
+                    //}
+                    //this.setData({ list: temp });
+                    //this.methods.trimTitle();
+                  //}
+                //});
+              //});
+            //}
+          },
+          trimTitle: function() {
+            setTimeout(() => {
+              this.data.list.forEach((l) => {
+                const t = document.getElementById(`title_${l.id}`);
+                if (t != null) {
+                  if (t.textContent.length >= 80) {
+                    t.textContent = t.textContent.slice(0, 77) + '...';
+                  }
+                }
+              });
+            }, 500);
+          }
+        },
+        softKeyText: { left: 'Info', center: 'LISTEN', right: 'More' },
+        softKeyListener: {
+          left: function() {},
+          center: function() {},
+          right: function() {}
+        },
+        dPadNavListener: {
+          arrowUp: function() {
+            if (this.verticalNavIndex <= 0)
+              return;
+            this.navigateListNav(-1);
+          },
+          arrowDown: function() {
+            const listNav = document.querySelectorAll(this.verticalNavClass);
+            if (this.verticalNavIndex === listNav.length - 1)
+              return
+            this.navigateListNav(1);
+          }
+        }
+      })
+    );
   }
 
   const home = new Kai({
