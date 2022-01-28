@@ -930,7 +930,21 @@ window.addEventListener("load", () => {
               if (['Unsubscribe', 'Subscribe'].indexOf(selected.text) > -1) {
                 subscribePodcast(this.$router, this.data.list[this.verticalNavIndex].id);
               } else if (selected.text === 'Episodes') {
-                console.log(this.data.list[this.verticalNavIndex].id);
+                this.$router.showLoading();
+                podcastIndex.getFeedEpisodes(this.data.list[this.verticalNavIndex].id)
+                .then((result) => {
+                  episodePage(this.$router, this.data.list[this.verticalNavIndex].title, result.response.items, {
+                    'Download': function(episode) {
+                      console.log(selected.text, 'Download', episode);
+                    }
+                  });
+                })
+                .catch((err) => {
+                  console.log(err);
+                })
+                .finally(() => {
+                  this.$router.hideLoading();
+                });
               } else if (selected.text === 'Sync Podcast') {
                 syncPodcast(this.$router, this.data.list[this.verticalNavIndex].id, false);
               }
