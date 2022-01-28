@@ -781,7 +781,7 @@ window.addEventListener("load", () => {
   const home = new Kai({
     name: 'home',
     data: {
-      title: 'PodKast Title - Podcast Ep Subtitle',
+      title: 'Podcast Title - Podcast Ep Subtitle',
       album_art: '/icons/icon112x112.png',
       play_icon: '/icons/play.png',
       slider_value: 30,
