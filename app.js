@@ -936,7 +936,7 @@ window.addEventListener("load", () => {
               break;
             case 'Recent Podcast By Category':
               this.$router.showOptionMenu('Categories', this.$state.getState('CATEGORIES'), 'SELECT', (selected) => {
-                console.log(selected.text);
+                podcastIndex.getRecentFeeds([selected.text]);
               }, () => {});
               break;
             case 'Bookmarked Episodes':
