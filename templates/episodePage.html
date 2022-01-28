@@ -3,30 +3,38 @@
     pre {
       white-space: pre-wrap;
       word-wrap: break-word;
-      margin:0px;
-      padding:0px;
+      margin: 0px;
+      padding: 0px;
       font-size: 12px;
       overflow: hidden;
       text-overflow: ellipsis;
+      font-family: AvenirNext, "Helvetica Neue", Helvetica, Arial, sans-serif;
+      font-style: normal;
+      font-weight: 600;
+    }
+    .li-style {
+      height: 90px!important;
+      padding:0 5px!important;
     }
     .wrapper {
-      width:100%;
-      height:60px;
-      display:flex;
-      flex-direction:row;
+      width: 100%;
+      height: 90px;
+      display: flex;
+      flex-direction: row;
     }
     .wrapper-thumb {
-      width:50px;
-      padding-top:5px;
+      width: 80px;
+      padding-top: 5px;
     }
     .wrapper-thumb-img {
-      object-fit:cover;
-      max-width:50px;
-      max-height:50px;
+      object-fit: cover;
+      max-width: 80px;
+      max-height: 80px;
       border-radius: 5px;
+      box-shadow: inset 0 1px 3px rgba(0,0,0,0.16), 0 2px 3px rgba(0,0,0,0.45);
     }
     .wrapper-info {
-      height: 50px;
+      height: 80px;
       width:calc(100% - 55px);
       padding: 5px 5px 0px 5px;
       margin-bottom: 5px;
@@ -34,8 +42,7 @@
       position: relative;
     }
     .wrapper-info-child {
-      font-size: 10px;
-      height: 45px;
+      height: 59px;
       width: 100%;
       white-space: pre-wrap!important;
       word-break: break-word!important;
@@ -45,14 +52,19 @@
   </style>
   <ul class="kui-list kai-container">
     {{#list}}
-    <li class="ePageNav li-style kui-divider">
+    <li class="ePageNav kui-divider li-style">
       <div class="wrapper">
         <div class="wrapper-thumb">
-          <img id="thumb_{{ feedId }}_{{ id }}" src="{{ image }}" class="wrapper-thumb-img" width="50px" height="50px"/>
+          <img id="thumb_{{ feedId }}_{{ id }}" src="{{ image }}" class="wrapper-thumb-img" width="80px" height="80px"/>
         </div>
         <div class="wrapper-info">
-          <pre class="wrapper-info-child">{{ title }}</pre>
-          {{#podkastBookmark}}<span style="position:absolute;margin-top:-1px;color:#E7A136;padding:2px;bottom:0;right:0;">&#9733;</span>{{/podkastBookmark}}
+          <pre id="title_{{ feedId }}_{{ id }}" class="wrapper-info-child">{{ title }}</pre>
+          {{#episode}}
+          <pre style="position:absolute;margin:-1px 0 0 3px;padding:2px;bottom:0;left:0;font-weight:400;">Episode: {{ episode }}</pre>
+          {{/episode}}
+          {{#podkastBookmark}}
+          <span style="position:absolute;margin-top:-1px;color:#E7A136;padding:2px;bottom:0;right:0;">&#9733;</span>
+          {{/podkastBookmark}}
         </div>
       </div>
     </li>

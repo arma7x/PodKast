@@ -673,6 +673,7 @@ window.addEventListener("load", () => {
               }
             });
             this.setData({ list: data });
+            this.methods.trimTitle();
           },
           processDataNull: function(bookmarkList) {
             if (Object.keys(bookmarkList).length === 0) {
@@ -703,10 +704,23 @@ window.addEventListener("load", () => {
                       this.verticalNavIndex--;
                     }
                     this.setData({ list: temp });
+                    this.methods.trimTitle();
                   }
                 });
               });
             }
+          },
+          trimTitle: function() {
+            setTimeout(() => {
+              this.data.list.forEach((l) => {
+                const t = document.getElementById(`title_${l.feedId}_${l.id}`);
+                if (t != null) {
+                  if (t.textContent.length >= 80) {
+                    t.textContent = t.textContent.slice(0, 77) + '...';
+                  }
+                }
+              });
+            }, 500);
           }
         },
         softKeyText: { left: 'Info', center: 'PLAY', right: 'More' },
@@ -714,6 +728,7 @@ window.addEventListener("load", () => {
           left: function() {
             if (this.data.list[this.verticalNavIndex] == null)
               return;
+            console.log(this.data.list[this.verticalNavIndex]);
           },
           center: function() {
             if (this.data.list[this.verticalNavIndex] == null)
