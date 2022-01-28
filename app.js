@@ -776,6 +776,10 @@ window.addEventListener("load", () => {
     );
   }
 
+  const podcastPage = function($router, title, data = null) {
+    
+  }
+
   const home = new Kai({
     name: 'home',
     data: {
@@ -933,7 +937,7 @@ window.addEventListener("load", () => {
                 this.$router.showOptionMenu('Filter Recent Podcast By', [{'text': 'Show All'}, {'text': 'Categories'}], 'SELECT', (selected) => {
                   switch (selected.text) {
                     case 'Show All':
-                      podcastIndex.getRecentFeeds(temp);
+                      podcastIndex.getRecentFeeds([]);
                       break;
                     case 'Categories':
                       setTimeout(() => {
