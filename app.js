@@ -777,7 +777,7 @@ window.addEventListener("load", () => {
   }
 
   const podcastPage = function($router, title, data = null) {
-    
+    console.log(title, data);
   }
 
   const home = new Kai({
@@ -886,7 +886,7 @@ window.addEventListener("load", () => {
               listenPodcast(75075, this.$router);
               break;
             case 'Subscribed Podcasts':
-              // TODO
+              podcastPage(this.$router, selected.text, null);
               break;
             case 'Search Podcast':
               setTimeout(() => {
@@ -895,12 +895,32 @@ window.addEventListener("load", () => {
                   switch (selected.text) {
                     case 'Search Podcasts':
                       this.methods.showInputDialog(selected.text, 'Enter search term', (term) => {
-                        podcastIndex.searchByTerm(term);
+                        this.$router.showLoading();
+                        podcastIndex.searchByTerm(term)
+                        .then((result) => {
+                          podcastPage(this.$router, selected.text, result.response.feeds);
+                        })
+                        .catch((err) => {
+                          console.log(err);
+                        })
+                        .finally(() => {
+                          this.$router.hideLoading();
+                        });
                       });
                       break;
                     case 'Search Podcasts by Title':
                       this.methods.showInputDialog(selected.text, 'Enter search term', (term) => {
-                        podcastIndex.searchByTitle(term);
+                        this.$router.showLoading();
+                        podcastIndex.searchByTitle(term)
+                        .then((result) => {
+                          podcastPage(this.$router, selected.text, result.response.feeds);
+                        })
+                        .catch((err) => {
+                          console.log(err);
+                        })
+                        .finally(() => {
+                          this.$router.hideLoading();
+                        });
                       });
                       break;
                     case 'Search Episodes by Person':
@@ -930,14 +950,34 @@ window.addEventListener("load", () => {
               }, 100);
               break;
             case 'Trending Podcast':
-              podcastIndex.getTrending();
+              this.$router.showLoading();
+              podcastIndex.getTrending()
+              .then((result) => {
+                podcastPage(this.$router, selected.text, result.response.feeds);
+              })
+              .catch((err) => {
+                console.log(err);
+              })
+              .finally(() => {
+                this.$router.hideLoading();
+              });
               break;
             case 'Recent Podcast':
               setTimeout(() => {
                 this.$router.showOptionMenu('Filter Recent Podcast By', [{'text': 'Show All'}, {'text': 'Categories'}], 'SELECT', (selected) => {
                   switch (selected.text) {
                     case 'Show All':
-                      podcastIndex.getRecentFeeds([]);
+                      this.$router.showLoading();
+                      podcastIndex.getRecentFeeds([])
+                      .then((result) => {
+                        podcastPage(this.$router, "Recent Podcast", result.response.feeds);
+                      })
+                      .catch((err) => {
+                        console.log(err);
+                      })
+                      .finally(() => {
+                        this.$router.hideLoading();
+                      });
                       break;
                     case 'Categories':
                       setTimeout(() => {
@@ -947,7 +987,17 @@ window.addEventListener("load", () => {
                             if (c['checked'])
                               temp.push(c['name']);
                           });
-                          podcastIndex.getRecentFeeds(temp);
+                          this.$router.showLoading();
+                          podcastIndex.getRecentFeeds(temp)
+                          .then((result) => {
+                            podcastPage(this.$router, "Recent Podcast", result.response.feeds);
+                          })
+                          .catch((err) => {
+                            console.log(err);
+                          })
+                          .finally(() => {
+                            this.$router.hideLoading();
+                          });
                         }, 'Cancel', null, () => {}, 0);
                       }, 100);
                       break;
@@ -957,7 +1007,17 @@ window.addEventListener("load", () => {
               break;
             case 'Recent Podcast By Category':
               this.$router.showOptionMenu('Categories', this.$state.getState('CATEGORIES'), 'SELECT', (selected) => {
-                podcastIndex.getRecentFeeds([selected.text]);
+                this.$router.showLoading();
+                podcastIndex.getRecentFeeds([selected.text])
+                .then((result) => {
+                  podcastPage(this.$router, selected.text, result.response.feeds);
+                })
+                .catch((err) => {
+                  console.log(err);
+                })
+                .finally(() => {
+                  this.$router.hideLoading();
+                });
               }, () => {});
               break;
             case 'Bookmarked Episodes':
