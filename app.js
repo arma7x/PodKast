@@ -344,6 +344,33 @@ window.addEventListener("load", () => {
   }
   initTableSubscribed();
 
+  const subscribePodcast = function($router, id) {
+    var msg;
+    localforage.getItem(TABLE_SUBSCRIBED)
+    .then((list) => {
+      if (list == null) {
+        list = [];
+      }
+      if (list.indexOf(id) === -1) {
+        list.push(id);
+        msg = 'SUBSCRIBED';
+      } else {
+        list.splice(list.indexOf(id), 1);
+        msg = 'UNSUBSCRIBED';
+      }
+      return localforage.setItem(TABLE_SUBSCRIBED, list);
+    })
+    .then(() =>{
+      $router.showToast(msg);
+      if (msg === 'SUBSCRIBED')
+        listenPodcast($router, id);
+      initTableSubscribed();
+    })
+    .catch((err) =>{
+      console.log(err);
+    });
+  }
+
   const initTableBookmarked = function() {
     const temps = {};
     T_BOOKMARKED.iterate((value, key, iterationNumber) => {
@@ -422,7 +449,7 @@ window.addEventListener("load", () => {
   }
   initCategories();
 
-  const listenPodcast = function(id, $router, playable = true) {
+  const listenPodcast = function($router, id, playable = true) {
     $router.showLoading();
     Promise.all([podcastIndex.getFeed(id), T_PODCASTS.getItem(id.toString()), podcastIndex.getFeedEpisodes(id), T_EPISODES.getItem(id.toString())])
     .then((results) => {
@@ -827,13 +854,13 @@ window.addEventListener("load", () => {
           processData: function(subscribedList) {
             // console.log('processData', TABLE_SUBSCRIBED, subscribedList);
             data.forEach((i) => {
-              i['podkastSubscribed'] = false;
+              i['podkastSubscribe'] = false;
               if (i['author'] == null)
                 i['author'] = false;
               if (i['image'] == '' || i['image'] == null)
                 i['image'] = '/icons/icon112x112.png';
               if (subscribedList.indexOf(i['id']) > -1)
-                i['podkastSubscribed'] = true;
+                i['podkastSubscribe'] = true;
             });
             this.setData({ list: data });
             //this.methods.trimTitle();
@@ -858,7 +885,7 @@ window.addEventListener("load", () => {
                       //episodes[id]['feedImage'] = '/icons/icon112x112.png';
                     //if (episodes[id]['image'] == '' || episodes[id]['image'] == null)
                       //episodes[id]['image'] = episodes[id]['feedImage'];
-                    //episodes[id]['podkastBookmark'] = true;
+                    //episodes[id]['podkastSubscribe'] = true;
                     //temp.push(episodes[id]);
                   //}
                   //bookmarkSize--;
@@ -890,7 +917,21 @@ window.addEventListener("load", () => {
         softKeyListener: {
           left: function() {},
           center: function() {},
-          right: function() {}
+          right: function() {
+            if (this.data.list[this.verticalNavIndex] == null)
+              return;
+            const menu = [
+              { 'text': 'Episodes' },
+              { 'text': this.data.list[this.verticalNavIndex]['podkastSubscribe'] ? 'Unsubscribe' : 'Subscribe' }
+            ];
+            this.$router.showOptionMenu('More', menu, 'SELECT', (selected) => {
+              if (['Unsubscribe', 'Subscribe'].indexOf(selected.text) > -1) {
+                subscribePodcast(this.$router, this.data.list[this.verticalNavIndex].id);
+              } else if (selected.text === 'Episodes') {
+                console.log(this.data.list[this.verticalNavIndex].id);
+              }
+            }, () => {});
+          }
         },
         dPadNavListener: {
           arrowUp: function() {
@@ -1012,7 +1053,7 @@ window.addEventListener("load", () => {
         this.$router.showOptionMenu('Menu', menu, 'SELECT', (selected) => {
           switch (selected.text) {
             case 'Test':
-              listenPodcast(75075, this.$router);
+              listenPodcast(this.$router, 75075);
               break;
             case 'Subscribed Podcasts':
               podcastPage(this.$router, selected.text, null);
