@@ -286,7 +286,6 @@ window.addEventListener("load", () => {
     .catch((err) => {
       console.log(err);
       T_PODCASTS.removeItem(id.toString());
-      T_EPISODES.removeItem(id.toString());
     })
     .finally(() => {
       $router.hideLoading();
