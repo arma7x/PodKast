@@ -285,7 +285,8 @@ window.addEventListener("load", () => {
     })
     .catch((err) => {
       console.log(err);
-      T_PODCASTS.removeItem(id.toString());
+      // Only delete if podcast['podkastCurrentEpisode'] === null
+      // T_PODCASTS.removeItem(id.toString());
     })
     .finally(() => {
       $router.hideLoading();
