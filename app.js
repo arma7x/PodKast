@@ -174,13 +174,13 @@ window.addEventListener("load", () => {
   }
 
   const initTableBookmarked = function() {
-    const temps = {};
+    const temp = {};
     T_BOOKMARKED.iterate((value, key, iterationNumber) => {
-      temps[key] = value;
+      temp[key] = value;
     })
     .then(() => {
-      // console.log('initTableBookmarked', TABLE_BOOKMARKED, temps);
-      state.setState(TABLE_BOOKMARKED, temps);
+      // console.log('initTableBookmarked', TABLE_BOOKMARKED, temp);
+      state.setState(TABLE_BOOKMARKED, temp);
     })
     .catch((err) =>{
       console.log(err);
@@ -677,39 +677,40 @@ window.addEventListener("load", () => {
             //this.methods.trimTitle();
           },
           processDataNull: function(subscribedList) {
-            //if (Object.keys(subscribedList).length === 0) {
-              //this.setData({ list: [] });
-              //return;
-            //}
-            //var temp = [];
-            //var bookmarkSize = 0;
-            //for (var feedId in subscribedList) {
-              //bookmarkSize += subscribedList[feedId].length;
-            //}
-            //for (var feedId in subscribedList) {
-              //const cur = feedId;
-              //T_EPISODES.getItem(feedId)
-              //.then((episodes) => {
-                //subscribedList[cur].forEach((id) => {
-                  //if (episodes[id]) {
-                    //if (episodes[id]['feedImage'] == '' || episodes[id]['feedImage'] == null)
-                      //episodes[id]['feedImage'] = '/icons/icon112x112.png';
-                    //if (episodes[id]['image'] == '' || episodes[id]['image'] == null)
-                      //episodes[id]['image'] = episodes[id]['feedImage'];
-                    //episodes[id]['podkastSubscribe'] = true;
-                    //temp.push(episodes[id]);
-                  //}
-                  //bookmarkSize--;
-                  //if (bookmarkSize <= 0) {
-                    //if (temp.length < this.verticalNavIndex + 1) {
-                      //this.verticalNavIndex--;
-                    //}
-                    //this.setData({ list: temp });
-                    //this.methods.trimTitle();
-                  //}
-                //});
-              //});
-            //}
+            console.log(subscribedList);
+            if (subscribedList.length === 0) {
+              this.setData({ list: [] });
+              return;
+            }
+            var temp = [];
+            var subscribedSize = subscribedList.length;
+            subscribedList.forEach((feedId) => {
+              T_PODCASTS.getItem(feedId.toString())
+              .then((podcast) => {
+                subscribedSize--;
+                if (podcast != null) {
+                  podcast['podkastSubscribe'] = true;
+                  temp.push(podcast);
+                }
+                if (subscribedSize === 0) {
+                  if (temp.length < this.verticalNavIndex + 1) {
+                    this.verticalNavIndex--;
+                  }
+                  this.setData({ list: temp });
+                  this.methods.trimTitle();
+                }
+              })
+              .catch((err) => {
+                subscribedSize--;
+                if (subscribedSize === 0) {
+                  if (temp.length < this.verticalNavIndex + 1) {
+                    this.verticalNavIndex--;
+                  }
+                  this.setData({ list: temp });
+                  this.methods.trimTitle();
+                }
+              });
+            });
           },
           trimTitle: function() {
             setTimeout(() => {
@@ -745,11 +746,11 @@ window.addEventListener("load", () => {
                 T_EPISODES.getItem(this.data.list[this.verticalNavIndex].id.toString())
                 .then((episodes) => {
                   if (episodes != null) {
-                    var temps = [];
+                    var temp = [];
                     for (var x in episodes) {
-                      temps.push(episodes[x]);
+                      temp.push(episodes[x]);
                     }
-                    episodePage(this.$router, this.data.list[this.verticalNavIndex].title, temps, {
+                    episodePage(this.$router, this.data.list[this.verticalNavIndex].title, temp, {
                       'Download': function(episode) {
                         console.log(selected.text, 'Download', episode);
                       }
