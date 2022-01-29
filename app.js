@@ -621,6 +621,8 @@ window.addEventListener("load", () => {
           optimize: function() {
             setTimeout(() => {
               this.data.list.forEach((l) => {
+                if (this.data.listThumb[l.id])
+                  return;
                 fetchThumb(`thumb_${l.feedId}_${l.id}`, l.image, T_EPISODE_THUMB)
                 .then((url) => {
                   const img = document.getElementById(`thumb_${l.feedId}_${l.id}`);
@@ -780,6 +782,8 @@ window.addEventListener("load", () => {
           optimize: function() {
             setTimeout(() => {
               this.data.list.forEach((l) => {
+                if (this.data.listThumb[l.id])
+                  return;
                 fetchThumb(`thumb_${l.id}`, l.image, T_PODCAST_THUMB)
                 .then((url) => {
                   const img = document.getElementById(`thumb_${l.id}`);
