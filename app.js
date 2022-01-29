@@ -574,7 +574,7 @@ window.addEventListener("load", () => {
               }
             });
             this.setData({ list: data });
-            this.methods.trimTitle();
+            this.methods.optimize();
           },
           processDataNull: function(bookmarkList) {
             if (Object.keys(bookmarkList).length === 0) {
@@ -605,13 +605,13 @@ window.addEventListener("load", () => {
                       this.verticalNavIndex--;
                     }
                     this.setData({ list: temp });
-                    this.methods.trimTitle();
+                    this.methods.optimize();
                   }
                 });
               });
             }
           },
-          trimTitle: function() {
+          optimize: function() {
             setTimeout(() => {
               this.data.list.forEach((l) => {
                 const t = document.getElementById(`title_${l.feedId}_${l.id}`);
@@ -732,7 +732,7 @@ window.addEventListener("load", () => {
                 i['podkastSubscribe'] = true;
             });
             this.setData({ list: data });
-            //this.methods.trimTitle();
+            this.methods.optimize();
           },
           processDataNull: function(subscribedList) {
             console.log(subscribedList);
@@ -755,7 +755,7 @@ window.addEventListener("load", () => {
                     this.verticalNavIndex--;
                   }
                   this.setData({ list: temp });
-                  this.methods.trimTitle();
+                  this.methods.optimize();
                 }
               })
               .catch((err) => {
@@ -765,12 +765,12 @@ window.addEventListener("load", () => {
                     this.verticalNavIndex--;
                   }
                   this.setData({ list: temp });
-                  this.methods.trimTitle();
+                  this.methods.optimize();
                 }
               });
             });
           },
-          trimTitle: function() {
+          optimize: function() {
             setTimeout(() => {
               this.data.list.forEach((l) => {
                 const t = document.getElementById(`title_${l.id}`);
@@ -779,6 +779,16 @@ window.addEventListener("load", () => {
                     t.textContent = t.textContent.slice(0, 28) + '...';
                   }
                 }
+                fetchThumb(`thumb_${l.id}`, l.image, T_PODCAST_THUMB)
+                .then((url) => {
+                  const img = document.getElementById(`thumb_${l.id}`);
+                  if (img != null) {
+                    img.src = url;
+                  }
+                })
+                .catch((err) => {
+                  console.log(err);
+                });
               });
             }, 500);
           }
