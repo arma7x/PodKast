@@ -214,7 +214,7 @@ window.addEventListener("load", () => {
       return T_BOOKMARKED.setItem(episode['feedId'].toString(), episodes);
     })
     .then(() => {
-      $router.showToast('DONE BOOKMARK');
+      $router.showToast('ADD TO FAVOURITE');
       initTableBookmarked();
     })
     .catch((err) => {
@@ -236,7 +236,7 @@ window.addEventListener("load", () => {
       return T_BOOKMARKED.setItem(episode['feedId'].toString(), episodes);
     })
     .then(() => {
-      $router.showToast('DONE REMOVE BOOKMARK');
+      $router.showToast('REMOVE FROM FAVOURITE');
       initTableBookmarked();
     })
     .catch((err) => {
@@ -654,19 +654,19 @@ window.addEventListener("load", () => {
             const menu = [];
             if (data !== null) {
               if (this.data.list[this.verticalNavIndex]['podkastBookmark'] === false)
-                menu.push({ 'text': 'Add Bookmark' });
+                menu.push({ 'text': 'Add To Favourite' });
             }
             if (this.data.list[this.verticalNavIndex]['podkastBookmark'])
-              menu.push({ 'text': 'Remove Bookmark' });
+              menu.push({ 'text': 'Remove From Favourite' });
             for (var k in rightSoftKeyCallback) {
               menu.push({ 'text': k });
             }
             this.$router.showOptionMenu('More', menu, 'SELECT', (selected) => {
               if (rightSoftKeyCallback[selected.text]) {
                 rightSoftKeyCallback[selected.text](JSON.parse(JSON.stringify(this.data.list[this.verticalNavIndex])));
-              } else if (selected.text === 'Add Bookmark') {
+              } else if (selected.text === 'Add To Favourite') {
                 addBookmark($router, JSON.parse(JSON.stringify(this.data.list[this.verticalNavIndex])));
-              } else if (selected.text === 'Remove Bookmark') {
+              } else if (selected.text === 'Remove From Favourite') {
                 removeBookmark($router, JSON.parse(JSON.stringify(this.data.list[this.verticalNavIndex])));
               }
             }, () => {});
@@ -963,7 +963,7 @@ window.addEventListener("load", () => {
           {'text': 'Trending Podcast'},
           {'text': 'Recent Podcast'},
           {'text': 'Recent Podcast By Category'},
-          {'text': 'Bookmarked Episodes'}, // CACHE
+          {'text': 'Favorite Episodes'}, // CACHE
           {'text': 'Random Episodes'},
           {'text': 'Help & Support'},
           {'text': 'Changelogs'},
@@ -1109,7 +1109,7 @@ window.addEventListener("load", () => {
                 });
               }, () => {});
               break;
-            case 'Bookmarked Episodes':
+            case 'Favorite Episodes':
               episodePage(this.$router, selected.text, null, {
                 'Download': function(episode) {
                   console.log(selected.text, 'Download', episode);
