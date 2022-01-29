@@ -344,25 +344,6 @@ window.addEventListener("load", () => {
     });
   }
 
-  const changelogs = new Kai({
-    name: 'changelogs',
-    data: {
-      title: 'changelogs'
-    },
-    templateUrl: document.location.origin + '/templates/changelogs.html',
-    mounted: function() {
-      this.$router.setHeaderTitle('Changelogs');
-    },
-    unmounted: function() {},
-    methods: {},
-    softKeyText: { left: '', center: '', right: '' },
-    softKeyListener: {
-      left: function() {},
-      center: function() {},
-      right: function() {}
-    }
-  });
-
   // id[DOM] thumb_{feedId}_{episodeId} OR thumb_{feedId}
   // url
   // table T_PODCAST_THUMB or T_EPISODE_THUMB
@@ -398,6 +379,25 @@ window.addEventListener("load", () => {
       });
     });
   }
+
+  const changelogs = new Kai({
+    name: 'changelogs',
+    data: {
+      title: 'changelogs'
+    },
+    templateUrl: document.location.origin + '/templates/changelogs.html',
+    mounted: function() {
+      this.$router.setHeaderTitle('Changelogs');
+    },
+    unmounted: function() {},
+    methods: {},
+    softKeyText: { left: '', center: '', right: '' },
+    softKeyListener: {
+      left: function() {},
+      center: function() {},
+      right: function() {}
+    }
+  });
 
   const helpSupport = new Kai({
     name: 'helpSupport',
@@ -442,6 +442,30 @@ window.addEventListener("load", () => {
       }
     }
   });
+
+  const descriptionPage = function($router, data) {
+    $router.push(
+      new Kai({
+        name: 'descriptionPage',
+        data: {
+          title: 'descriptionPage',
+          description: data.description
+        },
+        templateUrl: document.location.origin + '/templates/description.html',
+        mounted: function() {
+          this.$router.setHeaderTitle(data.title);
+        },
+        unmounted: function() {},
+        methods: {},
+        softKeyText: { left: '', center: '', right: '' },
+        softKeyListener: {
+          left: function() {},
+          center: function() {},
+          right: function() {}
+        }
+      })
+    );
+  }
 
   const miniPlayer = function($router, episode) {
     // feedTitle title enclosureUrl
@@ -638,12 +662,13 @@ window.addEventListener("load", () => {
             }, 500);
           }
         },
-        softKeyText: { left: 'Info', center: 'PLAY', right: 'More' },
+        softKeyText: { left: 'Description', center: 'PLAY', right: 'More' },
         softKeyListener: {
           left: function() {
             if (this.data.list[this.verticalNavIndex] == null)
               return;
-            console.log(this.data.list[this.verticalNavIndex]);
+            console.log(this.data.list[this.verticalNavIndex].description);
+            descriptionPage(this.$router, this.data.list[this.verticalNavIndex]);
           },
           center: function() {
             if (this.data.list[this.verticalNavIndex] == null)
@@ -654,15 +679,15 @@ window.addEventListener("load", () => {
             if (this.data.list[this.verticalNavIndex] == null)
               return;
             const menu = [];
+            for (var k in rightSoftKeyCallback) {
+              menu.push({ 'text': k });
+            }
             if (data !== null) {
               if (this.data.list[this.verticalNavIndex]['podkastBookmark'] === false)
                 menu.push({ 'text': 'Add To Favourite' });
             }
             if (this.data.list[this.verticalNavIndex]['podkastBookmark'])
               menu.push({ 'text': 'Remove From Favourite' });
-            for (var k in rightSoftKeyCallback) {
-              menu.push({ 'text': k });
-            }
             this.$router.showOptionMenu('More', menu, 'SELECT', (selected) => {
               if (rightSoftKeyCallback[selected.text]) {
                 rightSoftKeyCallback[selected.text](JSON.parse(JSON.stringify(this.data.list[this.verticalNavIndex])));
@@ -798,15 +823,20 @@ window.addEventListener("load", () => {
             }, 500);
           }
         },
-        softKeyText: { left: 'Info', center: 'LISTEN', right: 'More' },
+        softKeyText: { left: 'Description', center: 'LISTEN', right: 'More' },
         softKeyListener: {
-          left: function() {},
+          left: function() {
+            if (this.data.list[this.verticalNavIndex] == null)
+              return;
+            console.log(this.data.list[this.verticalNavIndex].description);
+            descriptionPage(this.$router, this.data.list[this.verticalNavIndex]);
+          },
           center: function() {},
           right: function() {
             if (this.data.list[this.verticalNavIndex] == null)
               return;
             const menu = [
-              { 'text': 'Episodes' },
+              { 'text': 'Episode List' },
               { 'text': this.data.list[this.verticalNavIndex]['podkastSubscribe'] ? 'Unsubscribe' : 'Subscribe' }
             ];
             if (this.data.list[this.verticalNavIndex]['podkastSubscribe'])
@@ -814,40 +844,40 @@ window.addEventListener("load", () => {
             this.$router.showOptionMenu('More', menu, 'SELECT', (selected) => {
               if (['Unsubscribe', 'Subscribe'].indexOf(selected.text) > -1) {
                 subscribePodcast(this.$router, this.data.list[this.verticalNavIndex].id);
-              } else if (selected.text === 'Episodes') {
-                var resume = false;
-                T_EPISODES.getItem(this.data.list[this.verticalNavIndex].id.toString())
-                .then((episodes) => {
-                  if (episodes != null) {
-                    var temp = [];
-                    for (var x in episodes) {
-                      temp.push(episodes[x]);
+              } else if (selected.text === 'Episode List') {
+                this.$router.showLoading();
+                podcastIndex.getFeedEpisodes(this.data.list[this.verticalNavIndex].id)
+                .then((result) => {
+                  episodePage(this.$router, this.data.list[this.verticalNavIndex].title, result.response.items, {
+                    'Download': function(episode) {
+                      console.log(selected.text, 'Download', episode);
                     }
-                    episodePage(this.$router, this.data.list[this.verticalNavIndex].title, temp, {
-                      'Download': function(episode) {
-                        console.log(selected.text, 'Download', episode);
+                  });
+                })
+                .catch((err) => {
+                  console.log(err);
+                  T_EPISODES.getItem(this.data.list[this.verticalNavIndex].id.toString())
+                  .then((episodes) => {
+                    if (episodes != null) {
+                      var temp = [];
+                      for (var x in episodes) {
+                        temp.push(episodes[x]);
                       }
-                    });
-                  } else {
-                    this.$router.showLoading();
-                    podcastIndex.getFeedEpisodes(this.data.list[this.verticalNavIndex].id)
-                    .then((result) => {
-                      episodePage(this.$router, this.data.list[this.verticalNavIndex].title, result.response.items, {
+                      episodePage(this.$router, this.data.list[this.verticalNavIndex].title, temp, {
                         'Download': function(episode) {
                           console.log(selected.text, 'Download', episode);
                         }
                       });
-                    })
-                    .catch((err) => {
-                      console.log(err);
-                    })
-                    .finally(() => {
-                      this.$router.hideLoading();
-                    });
-                  }
+                    } else {
+                      // NOT FOUND IN CACHE
+                    }
+                  })
+                  .catch((err) => {
+                    console.log(err);
+                  });
                 })
-                .catch((err) => {
-                  console.log(err);
+                .finally(() => {
+                  this.$router.hideLoading();
                 });
               } else if (selected.text === 'Sync Podcast') {
                 syncPodcast(this.$router, this.data.list[this.verticalNavIndex].id, false);
@@ -1021,9 +1051,6 @@ window.addEventListener("load", () => {
                         podcastIndex.searchByPerson(term)
                         .then((result) => {
                           episodePage(this.$router, selected.text, result.response.items, {
-                            'Download': function(episode) {
-                              console.log(selected.text, 'Download', episode);
-                            },
                             'Podcast Info': (episode) => {
                               console.log(selected.text, 'Podcast Info', episode.feedId);
                               this.$router.showLoading();
@@ -1037,6 +1064,9 @@ window.addEventListener("load", () => {
                               .finally(() => {
                                 this.$router.hideLoading();
                               });
+                            },
+                            'Download': function(episode) {
+                              console.log(selected.text, 'Download', episode);
                             }
                           });
                         })
@@ -1125,9 +1155,6 @@ window.addEventListener("load", () => {
               break;
             case 'Favorite Episodes':
               episodePage(this.$router, selected.text, null, {
-                'Download': function(episode) {
-                  console.log(selected.text, 'Download', episode);
-                },
                 'Podcast Info': (episode) => {
                   console.log(selected.text, 'Podcast Info', episode.feedId);
                   this.$router.showLoading();
@@ -1141,6 +1168,9 @@ window.addEventListener("load", () => {
                   .finally(() => {
                     this.$router.hideLoading();
                   });
+                },
+                'Download': function(episode) {
+                  console.log(selected.text, 'Download', episode);
                 }
               });
               break;
@@ -1149,9 +1179,6 @@ window.addEventListener("load", () => {
               podcastIndex.getRandomEpisodes()
               .then((result) => {
                 episodePage(this.$router, selected.text, result.response.episodes, {
-                  'Download': function(episode) {
-                    console.log(selected.text, 'Download', episode);
-                  },
                   'Podcast Info': (episode) => {
                     console.log(selected.text, 'Podcast Info', episode.feedId);
                     this.$router.showLoading();
@@ -1165,6 +1192,9 @@ window.addEventListener("load", () => {
                     .finally(() => {
                       this.$router.hideLoading();
                     });
+                  },
+                  'Download': function(episode) {
+                    console.log(selected.text, 'Download', episode);
                   }
                 });
               })
