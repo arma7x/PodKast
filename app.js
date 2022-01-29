@@ -361,6 +361,42 @@ window.addEventListener("load", () => {
     }
   });
 
+  // id[DOM] thumb_{feedId}_{episodeId} OR thumb_{feedId}
+  // url
+  // table T_PODCAST_THUMB or T_EPISODE_THUMB
+  const fetchThumb = function(id, url, TABLE_SRC) {
+    return new Promise((resolve, reject) => {
+      TABLE_SRC.getItem(id)
+      .then((blob) => {
+        if (blob == null) {
+          const req = new XMLHttpRequest({ mozSystem: true });
+          req.responseType = 'arraybuffer';
+          req.onreadystatechange = function() {
+            if (req.readyState == 4) {
+              if (req.status >= 200 && req.status <= 299) {
+                TABLE_SRC.setItem(id, req.response)
+                .then((image) => {
+                  resolve(window.URL.createObjectURL(new Blob([image])));
+                }).catch((err) => {
+                  resolve('/icons/icon112x112.png');
+                });
+              } else {
+                resolve('/icons/icon112x112.png');
+              }
+            }
+          };
+          req.open('GET', url, true);
+          req.send();
+        } else {
+          resolve(window.URL.createObjectURL(new Blob([blob])));
+        }
+      })
+      .catch(() => {
+        resolve('/icons/icon112x112.png');
+      });
+    });
+  }
+
   const helpSupport = new Kai({
     name: 'helpSupport',
     data: {
@@ -584,6 +620,16 @@ window.addEventListener("load", () => {
                     t.textContent = t.textContent.slice(0, 28) + '...';
                   }
                 }
+                fetchThumb(`thumb_${l.feedId}_${l.id}`, l.image, T_EPISODE_THUMB)
+                .then((url) => {
+                  const img = document.getElementById(`thumb_${l.feedId}_${l.id}`);
+                  if (img != null) {
+                    img.src = url;
+                  }
+                })
+                .catch((err) => {
+                  console.log(err);
+                });
               });
             }, 500);
           }
