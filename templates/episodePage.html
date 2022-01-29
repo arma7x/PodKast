@@ -54,10 +54,10 @@
     <li class="ePageNav kui-divider li-style">
       <div class="wrapper">
         <div class="wrapper-thumb">
-          <img id="thumb_{{ feedId }}_{{ id }}" src="/icons/loading.gif" class="wrapper-thumb-img" width="59px" height="59px"/>
+          <img id="thumb_{{ feedId }}_{{ id }}" src="{{ podkastThumb }}" class="wrapper-thumb-img" width="59px" height="59px"/>
         </div>
         <div class="wrapper-info">
-          <p id="title_{{ feedId }}_{{ id }}" class="wrapper-info-child" style="font-family:'MS PGothic';font-size:14px;">{{ title }}</p>
+          <p id="title_{{ feedId }}_{{ id }}" class="wrapper-info-child" style="font-family:'MS PGothic';font-size:14px;">{{ podkastTitle }}</p>
           {{#episode}}
           <p style="position:absolute;margin:-1px 0 0 3px;padding:2px;bottom:0;left:0;font-weight:lighter;">Episode: {{ episode }}</p>
           {{/episode}}

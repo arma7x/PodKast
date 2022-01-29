@@ -316,6 +316,8 @@ window.addEventListener("load", () => {
   }
 
   const playEpisode = function($router, episode, playable = true) {
+    delete episode['podkastTitle'];
+    delete episode['podkastThumb'];
     delete episode['podkastBookmark'];
     return T_EPISODES.getItem(episode['feedId'].toString())
     .then((episodesObj) => {
@@ -535,6 +537,7 @@ window.addEventListener("load", () => {
         data: {
           title: 'episodePage',
           list: [],
+          listThumb: {}
         },
         verticalNavClass: '.ePageNav',
         templateUrl: document.location.origin + '/templates/episodePage.html',
@@ -563,6 +566,8 @@ window.addEventListener("load", () => {
           processData: function(bookmarkList) {
             // console.log('processData', TABLE_BOOKMARKED, bookmarkList);
             data.forEach((i) => {
+              i['podkastTitle'] = i['title'].length >= 31 ? i['title'].slice(0, 28) + '...' : i['title'];
+              i['podkastThumb'] = this.data.listThumb[i['id']] || '/icons/loading.gif';
               i['podkastBookmark'] = false;
               if (i['feedImage'] == '' || i['feedImage'] == null)
                 i['feedImage'] = '/icons/icon112x112.png';
@@ -596,6 +601,8 @@ window.addEventListener("load", () => {
                       episodes[id]['feedImage'] = '/icons/icon112x112.png';
                     if (episodes[id]['image'] == '' || episodes[id]['image'] == null)
                       episodes[id]['image'] = episodes[id]['feedImage'];
+                    episodes[id]['podkastThumb'] = this.data.listThumb[id] || '/icons/loading.gif';
+                    episodes[id]['podkastTitle'] = episodes[id]['title'].length >= 31 ? episodes[id]['title'].slice(0, 28) + '...' : episodes[id]['title'];
                     episodes[id]['podkastBookmark'] = true;
                     temp.push(episodes[id]);
                   }
@@ -614,16 +621,11 @@ window.addEventListener("load", () => {
           optimize: function() {
             setTimeout(() => {
               this.data.list.forEach((l) => {
-                const t = document.getElementById(`title_${l.feedId}_${l.id}`);
-                if (t != null) {
-                  if (t.textContent.length >= 31) {
-                    t.textContent = t.textContent.slice(0, 28) + '...';
-                  }
-                }
                 fetchThumb(`thumb_${l.feedId}_${l.id}`, l.image, T_EPISODE_THUMB)
                 .then((url) => {
                   const img = document.getElementById(`thumb_${l.feedId}_${l.id}`);
                   if (img != null) {
+                    this.data.listThumb[l.id] = url;
                     img.src = url;
                   }
                 })
@@ -694,7 +696,8 @@ window.addEventListener("load", () => {
         name: 'podcastPage',
         data: {
           title: 'podcastPage',
-          list: []
+          list: [],
+          listThumb: {}
         },
         verticalNavClass: '.pPageNav',
         templateUrl: document.location.origin + '/templates/podcastPage.html',
@@ -723,6 +726,8 @@ window.addEventListener("load", () => {
           processData: function(subscribedList) {
             // console.log('processData', TABLE_SUBSCRIBED, subscribedList);
             data.forEach((i) => {
+              i['podkastTitle'] = i['title'].length >= 31 ? i['title'].slice(0, 28) + '...' : i['title'];
+              i['podkastThumb'] = this.data.listThumb[i['id']] || '/icons/loading.gif';
               i['podkastSubscribe'] = false;
               if (i['author'] == null)
                 i['author'] = false;
@@ -748,6 +753,8 @@ window.addEventListener("load", () => {
                 subscribedSize--;
                 if (podcast != null) {
                   podcast['podkastSubscribe'] = true;
+                  podcast['podkastThumb'] = this.data.listThumb[podcast['id']] || '/icons/loading.gif';
+                  podcast['podkastTitle'] = podcast['title'].length >= 31 ? podcast['title'].slice(0, 28) + '...' : podcast['title'];
                   temp.push(podcast);
                 }
                 if (subscribedSize === 0) {
@@ -773,16 +780,11 @@ window.addEventListener("load", () => {
           optimize: function() {
             setTimeout(() => {
               this.data.list.forEach((l) => {
-                const t = document.getElementById(`title_${l.id}`);
-                if (t != null) {
-                  if (t.textContent.length >= 31) {
-                    t.textContent = t.textContent.slice(0, 28) + '...';
-                  }
-                }
                 fetchThumb(`thumb_${l.id}`, l.image, T_PODCAST_THUMB)
                 .then((url) => {
                   const img = document.getElementById(`thumb_${l.id}`);
                   if (img != null) {
+                    this.data.listThumb[l.id] = url;
                     img.src = url;
                   }
                 })
