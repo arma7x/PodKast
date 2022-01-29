@@ -7,6 +7,8 @@ const TABLE_PODCASTS = 'PODCASTS';
 const TABLE_SUBSCRIBED = 'SUBSCRIBED_PODCASTS'; // [feedId, feedId, feedId, feedId, ...]
 const TABLE_EPISODES = 'PODCAST_EPISODES';
 const TABLE_BOOKMARKED = 'BOOKMARKED_EPISODES';
+const TABLE_PODCAST_THUMB = 'PODCAST_THUMBS';
+const TABLE_EPISODE_THUMB = 'EPISODE_THUMBS';
 const TABLE_APP_STATE = 'APP_STATE';
 const CATEGORIES = 'CATEGORIES';
 const EP_STATES = [TABLE_BOOKMARKED];
@@ -118,6 +120,16 @@ window.addEventListener("load", () => {
   const T_BOOKMARKED = localforage.createInstance({
     name: DB_NAME,
     storeName: TABLE_BOOKMARKED
+  });
+
+  const T_PODCAST_THUMB = localforage.createInstance({
+    name: DB_NAME,
+    storeName: TABLE_PODCAST_THUMB
+  });
+
+  const T_EPISODE_THUMB = localforage.createInstance({
+    name: DB_NAME,
+    storeName: TABLE_EPISODE_THUMB
   });
 
   // autoplay, current_podcast(feedId)
