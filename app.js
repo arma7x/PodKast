@@ -741,21 +741,39 @@ window.addEventListener("load", () => {
               if (['Unsubscribe', 'Subscribe'].indexOf(selected.text) > -1) {
                 subscribePodcast(this.$router, this.data.list[this.verticalNavIndex].id);
               } else if (selected.text === 'Episodes') {
-                this.$router.showLoading();
-                // If offline, get from cache
-                podcastIndex.getFeedEpisodes(this.data.list[this.verticalNavIndex].id)
-                .then((result) => {
-                  episodePage(this.$router, this.data.list[this.verticalNavIndex].title, result.response.items, {
-                    'Download': function(episode) {
-                      console.log(selected.text, 'Download', episode);
+                var resume = false;
+                T_EPISODES.getItem(this.data.list[this.verticalNavIndex].id.toString())
+                .then((episodes) => {
+                  if (episodes != null) {
+                    var temps = [];
+                    for (var x in episodes) {
+                      temps.push(episodes[x]);
                     }
-                  });
+                    episodePage(this.$router, this.data.list[this.verticalNavIndex].title, temps, {
+                      'Download': function(episode) {
+                        console.log(selected.text, 'Download', episode);
+                      }
+                    });
+                  } else {
+                    this.$router.showLoading();
+                    podcastIndex.getFeedEpisodes(this.data.list[this.verticalNavIndex].id)
+                    .then((result) => {
+                      episodePage(this.$router, this.data.list[this.verticalNavIndex].title, result.response.items, {
+                        'Download': function(episode) {
+                          console.log(selected.text, 'Download', episode);
+                        }
+                      });
+                    })
+                    .catch((err) => {
+                      console.log(err);
+                    })
+                    .finally(() => {
+                      this.$router.hideLoading();
+                    });
+                  }
                 })
                 .catch((err) => {
                   console.log(err);
-                })
-                .finally(() => {
-                  this.$router.hideLoading();
                 });
               } else if (selected.text === 'Sync Podcast') {
                 syncPodcast(this.$router, this.data.list[this.verticalNavIndex].id, false);
