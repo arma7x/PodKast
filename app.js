@@ -568,8 +568,8 @@ window.addEventListener("load", () => {
               this.data.list.forEach((l) => {
                 const t = document.getElementById(`title_${l.feedId}_${l.id}`);
                 if (t != null) {
-                  if (t.textContent.length >= 60) {
-                    t.textContent = t.textContent.slice(0, 67) + '...';
+                  if (t.textContent.length >= 31) {
+                    t.textContent = t.textContent.slice(0, 28) + '...';
                   }
                 }
               });
@@ -716,8 +716,8 @@ window.addEventListener("load", () => {
               this.data.list.forEach((l) => {
                 const t = document.getElementById(`title_${l.id}`);
                 if (t != null) {
-                  if (t.textContent.length >= 60) {
-                    t.textContent = t.textContent.slice(0, 67) + '...';
+                  if (t.textContent.length >= 31) {
+                    t.textContent = t.textContent.slice(0, 28) + '...';
                   }
                 }
               });
