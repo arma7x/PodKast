@@ -292,7 +292,7 @@ window.addEventListener("load", () => {
     .then((saved) => {
       console.log(saved);
       console.log(saved[1][saved[0]['podkastCurrentEpisode']]);
-      console.log(saved[1][saved[0]['podkastLastDuration']]);
+      console.log(saved[1][saved[0]['podkastCurrentEpisode']]['podkastLastDuration']);
       // MAIN_PLAYER
     })
     .catch((err) => {
@@ -692,7 +692,6 @@ window.addEventListener("load", () => {
   }
 
   const podcastPage = function($router, title, data = null) {
-    console.log(title, data);
     $router.push(
       new Kai({
         name: 'podcastPage',
@@ -1025,8 +1024,19 @@ window.addEventListener("load", () => {
                             'Download': function(episode) {
                               console.log(selected.text, 'Download', episode);
                             },
-                            'Podcast Info': function(episode) {
-                              console.log(selected.text, 'Podcast Info', episode);
+                            'Podcast Info': (episode) => {
+                              console.log(selected.text, 'Podcast Info', episode.feedId);
+                              this.$router.showLoading();
+                              podcastIndex.getFeed(episode.feedId)
+                              .then((result) => {
+                                podcastPage(this.$router, result.response.feed.title, [result.response.feed]);
+                              })
+                              .catch((err) => {
+                                console.log(err);
+                              })
+                              .finally(() => {
+                                this.$router.hideLoading();
+                              });
                             }
                           });
                         })
@@ -1118,8 +1128,19 @@ window.addEventListener("load", () => {
                 'Download': function(episode) {
                   console.log(selected.text, 'Download', episode);
                 },
-                'Podcast Info': function(episode) {
-                  console.log(selected.text, 'Podcast Info', episode);
+                'Podcast Info': (episode) => {
+                  console.log(selected.text, 'Podcast Info', episode.feedId);
+                  this.$router.showLoading();
+                  podcastIndex.getFeed(episode.feedId)
+                  .then((result) => {
+                    podcastPage(this.$router, result.response.feed.title, [result.response.feed]);
+                  })
+                  .catch((err) => {
+                    console.log(err);
+                  })
+                  .finally(() => {
+                    this.$router.hideLoading();
+                  });
                 }
               });
               break;
@@ -1131,8 +1152,19 @@ window.addEventListener("load", () => {
                   'Download': function(episode) {
                     console.log(selected.text, 'Download', episode);
                   },
-                  'Podcast Info': function(episode) {
-                    console.log(selected.text, 'Podcast Info', episode);
+                  'Podcast Info': (episode) => {
+                    console.log(selected.text, 'Podcast Info', episode.feedId);
+                    this.$router.showLoading();
+                    podcastIndex.getFeed(episode.feedId)
+                    .then((result) => {
+                      podcastPage(this.$router, result.response.feed.title, [result.response.feed]);
+                    })
+                    .catch((err) => {
+                      console.log(err);
+                    })
+                    .finally(() => {
+                      this.$router.hideLoading();
+                    });
                   }
                 });
               })
