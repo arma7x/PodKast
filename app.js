@@ -552,7 +552,6 @@ window.addEventListener("load", () => {
           right: function() {}
         },
         mounted: function() {
-          $router.setHeaderTitle('Mini Player');
           setTimeout(() => {
             DURATION_SLIDER = document.getElementById('mini_duration_slider');
             CURRENT_TIME = document.getElementById('mini_current_time');
@@ -613,7 +612,8 @@ window.addEventListener("load", () => {
     );
   }
 
-  const episodeListPage = function($router, title, data = null, rightSoftKeyCallback = {}) {
+  // DRAFT: Pagination
+  const episodeListPage = function($router, title, data = null, rightSoftKeyCallback = {}, episodeId = null) {
     console.log(data);
     $router.push(
       new Kai({
@@ -621,7 +621,9 @@ window.addEventListener("load", () => {
         data: {
           title: 'episodeListPage',
           list: [],
-          listThumb: {}
+          listThumb: {},
+          pageCursor: 0,
+          pages: [],
         },
         verticalNavClass: '.ePageNav',
         templateUrl: document.location.origin + '/templates/episodeListPage.html',
