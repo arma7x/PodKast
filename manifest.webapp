@@ -36,8 +36,11 @@
     "systemXHR": {
       "description": "Required to load remote content"
     },
+    "tcp-socket": {
+      "description": "Check host SSL Cert(Lets Encrypt)"
+    },
     "video-capture": {
-      "description": "Required for qr-code reader"
+      "description": "Required for qr-code reader(PodcastIndex key/secret)"
     },
     "serviceworker": {
       "description": "Needed for assocating service worker"
