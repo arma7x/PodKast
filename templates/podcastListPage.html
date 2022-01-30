@@ -42,7 +42,6 @@
       position: relative;
     }
     .wrapper-info-child {
-      height: 33px;
       width: 100%;
       white-space: pre-wrap!important;
       word-break: break-word!important;
@@ -52,19 +51,22 @@
   </style>
   <ul class="kui-list kai-container">
     {{#list}}
-    <li class="ePageNav kui-divider li-style">
+    <li class="pPageNav kui-divider li-style">
       <div class="wrapper">
         <div class="wrapper-thumb">
-          <img id="thumb_{{ feedId }}_{{ id }}" src="{{ podkastThumb }}" class="wrapper-thumb-img" width="59px" height="59px"/>
+          <img id="thumb_{{ id }}" src="{{ podkastThumb }}" class="wrapper-thumb-img" width="59px" height="59px"/>
         </div>
         <div class="wrapper-info">
-          <p id="title_{{ feedId }}_{{ id }}" class="wrapper-info-child" style="font-family:'MS PGothic';font-size:14px;">{{ podkastTitle }}</p>
-          {{#episode}}
-          <p style="position:absolute;margin:-1px 0 0 3px;padding:2px;bottom:0;left:0;font-weight:lighter;">Episode: {{ episode }}</p>
-          {{/episode}}
-          {{#podkastBookmark}}
-          <span style="position:absolute;margin-top:-1px;color:#000;padding:2px;bottom:0;right:0;">&#9733;</span>
-          {{/podkastBookmark}}
+          <p id="title_{{ id }}" class="wrapper-info-child" style="font-family:'MS PGothic';font-size:14px;">{{ podkastTitle }}</p>
+          {{#author}}
+          <p class="wrapper-info-child" style="font-weight:lighter;">{{ author }}</p>
+          {{/author}}
+          {{#episodeCount}}
+          <p style="font-weight:lighter;font-size:12px;position:absolute;margin-top:-1px;padding:2px;bottom:0;left:2px;">Episodes: {{episodeCount}}</p>
+          {{/episodeCount}}
+          {{#podkastSubscribe}}
+          <span style="position:absolute;margin-top:-1px;padding:2px;bottom:0;right:0;">&#10070;</span>
+          {{/podkastSubscribe}}
         </div>
       </div>
     </li>
