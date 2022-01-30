@@ -263,7 +263,7 @@ window.addEventListener("load", () => {
   const syncPodcast = function($router, podcast, playable = true) {
     id = podcast.id
     $router.showLoading();
-    Promise.all([podcastIndex.getFeed(id), T_PODCASTS.getItem(id.toString()), getPodcastEpisodeByFromRss($router, podcast), T_EPISODES.getItem(id.toString())])
+    Promise.all([podcastIndex.getFeed(id), T_PODCASTS.getItem(id.toString()), extractPodcastEpisodesFromRSS($router, podcast), T_EPISODES.getItem(id.toString())])
     .then((results) => {
       var tempPodcast = results[1];
       if (tempPodcast == null) {
@@ -342,10 +342,9 @@ window.addEventListener("load", () => {
     });
   }
 
-  const getPodcastEpisodeByFromRss = function($router, podcast) {
-    const obj = podcastIndex.makeRss(podcast.url || originalUrl, {}, {'content-type': podcast.contentType}, true);
+  const getRSSFromServer = function(url, query = {}, header = {}, podcast) {
     return new Promise((resolve, reject) => {
-      xhr('GET', obj.url, {}, obj.query)
+      xhr('GET', url, {}, query, header)
       .then((result) => {
         var parser = new DOMParser();
         const xml = parser.parseFromString(result.response, "text/xml");
@@ -373,7 +372,34 @@ window.addEventListener("load", () => {
         resolve(episodes);
       })
       .catch((err) => {
+        console.log(err);
         reject('Network Error');
+      });
+    });
+  }
+
+  const extractPodcastEpisodesFromRSS = function($router, podcast) {
+    return new Promise((resolve, reject) => {
+      requireProxy(podcast.url || podcast.originalUrl)
+      .then((url) => {
+        getRSSFromServer(url, {}, {'content-type': podcast.contentType}, podcast)
+        .then((episodes) => {
+          resolve(episodes);
+        })
+        .catch((err) => {
+          reject(err);
+        });
+      })
+      .catch((err) => {
+        console.log(err);
+        const obj = podcastIndex.makeRss(podcast.url || podcast.originalUrl, {}, {'content-type': podcast.contentType}, true);
+        resolve(getRSSFromServer(obj.url, obj.query, {}, podcast))
+        .then((episodes) => {
+          resolve(episodes);
+        })
+        .catch((err) => {
+          reject(err);
+        });
       });
     });
   }
@@ -906,7 +932,7 @@ window.addEventListener("load", () => {
                   });
                 } else {
                   $router.showLoading();
-                  getPodcastEpisodeByFromRss($router, this.data.list[this.verticalNavIndex])
+                  extractPodcastEpisodesFromRSS($router, this.data.list[this.verticalNavIndex])
                   .then((result) => {
                     episodeListPage($router, this.data.list[this.verticalNavIndex].title, result, {
                       'Download': function(episode) {
