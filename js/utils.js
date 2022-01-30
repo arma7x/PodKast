@@ -84,3 +84,17 @@ const resizeImage = function(id, url, cb) {
     console.log('Fail', id, url);
   }
 }
+
+const requireProxy = function(url) {
+  return new Promise((resolve, reject) => {
+    const conn = navigator.mozTCPSocket.open(new URL(url).host, 443, {useSecureTransport:true});
+    conn.onopen = () => {
+      conn.onerror = () => {};
+      conn.close();
+      resolve(url);
+    }
+    conn.onerror = (err) => {
+      reject(err);
+    }
+  });
+}
