@@ -1111,7 +1111,7 @@ window.addEventListener("load", () => {
   const home = new Kai({
     name: 'home',
     data: {
-      title: 'home',
+      title: 'PodKast',
     },
     components: [],
     templateUrl: document.location.origin + '/templates/home.html',
