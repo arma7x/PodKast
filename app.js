@@ -10,7 +10,9 @@ const TABLE_BOOKMARKED = 'BOOKMARKED_EPISODES';
 const TABLE_THUMBS = 'THUMBNAILS';
 const TABLE_APP_STATE = 'APP_STATE';
 const CATEGORIES = 'CATEGORIES';
-const EP_STATES = [TABLE_BOOKMARKED];
+const AUTOPLAY = 'AUTOPLAY';
+const ACTIVE_PODCAST = 'ACTIVE_PODCAST';
+const ACTIVE_EPISODE = 'ACTIVE_EPISODE';
 
 window.addEventListener("load", () => {
 
@@ -126,16 +128,13 @@ window.addEventListener("load", () => {
     storeName: TABLE_THUMBS
   });
 
-  // autoplay, current_podcast(feedId)
-  const T_APP_STATE = localforage.createInstance({
-    name: DB_NAME,
-    storeName: TABLE_APP_STATE
-  });
-
   const state = new KaiState({
     [CATEGORIES]: [],
     [TABLE_SUBSCRIBED]: [],
     [TABLE_BOOKMARKED]: {},
+    [AUTOPLAY]: localStorage.getItem(AUTOPLAY) || false,
+    [ACTIVE_PODCAST]: localStorage.getItem(ACTIVE_PODCAST),
+    [ACTIVE_EPISODE]: localStorage.getItem(ACTIVE_EPISODE),
   });
 
   const initTableSubscribed = function() {
@@ -251,7 +250,7 @@ window.addEventListener("load", () => {
           result.response.feeds[x]['checked'] = false;
           temp.push(result.response.feeds[x]);
         }
-        state.setState('CATEGORIES', temp);
+        state.setState(CATEGORIES, temp);
       }
     })
     .catch((err) => {
@@ -338,7 +337,11 @@ window.addEventListener("load", () => {
   }
 
   const playPodcast = function($router, episode, playable = true) {
-    console.log(episode, playable);
+    state.setState(ACTIVE_PODCAST, episode['feedId']);
+    localStorage.setItem(ACTIVE_PODCAST, episode['feedId']);
+    state.setState(ACTIVE_EPISODE, episode['id']);
+    localStorage.setItem(ACTIVE_EPISODE, episode['id']);
+    // console.log(state.getState(ACTIVE_PODCAST), state.getState(ACTIVE_EPISODE), episode, playable);
     MINI_PLAYER.src = '';
     MINI_PLAYER.pause();
     MINI_PLAYER.currentTime = 0;
@@ -693,12 +696,13 @@ window.addEventListener("load", () => {
   }
 
   const episodeListPage = function($router, title, data = null, rightSoftKeyCallback = {}, episodeId = null) {
-    console.log(data);
+    console.log(data, episodeId);
     $router.push(
       new Kai({
         name: 'episodeListPage',
         data: {
           title: 'episodeListPage',
+          init: true,
           list: [],
           listThumb: {},
           pageCursor: 0,
@@ -722,6 +726,7 @@ window.addEventListener("load", () => {
         methods: {
           gotoPage: function(cur) {
             this.setData({
+              init: false,
               list: this.data.pages[cur],
               pageCursor: cur,
             });
@@ -755,6 +760,15 @@ window.addEventListener("load", () => {
             const temp = JSON.parse(JSON.stringify(data));
             while (temp.length > 0) {
               pages.push(temp.splice(0, 20));
+              if (this.data.init && episodeId != null && episodeId != false) {
+                pages[pages.length - 1].forEach((ep, idx) => {
+                  if (ep['id'] === episodeId) {
+                    this.data.init = false;
+                    this.data.pageCursor = pages.length - 1;
+                    this.verticalNavIndex = idx;
+                  }
+                });
+              }
             }
             this.data.pages = pages;
             this.methods.gotoPage(this.data.pageCursor);
@@ -834,7 +848,14 @@ window.addEventListener("load", () => {
           center: function() {
             if (this.data.list[this.verticalNavIndex] == null)
               return;
-            playEpisode($router, JSON.parse(JSON.stringify(this.data.list[this.verticalNavIndex])));
+            if (episodeId != null && episodeId != false) {
+              setTimeout(() => {
+                playPodcast($router, JSON.parse(JSON.stringify(this.data.list[this.verticalNavIndex])));
+              }, 1000);
+              $router.pop();
+            } else {
+              playEpisode($router, JSON.parse(JSON.stringify(this.data.list[this.verticalNavIndex])));
+            }
           },
           right: function() {
             if (this.data.list[this.verticalNavIndex] == null)
@@ -1093,7 +1114,6 @@ window.addEventListener("load", () => {
     data: {
       title: 'home',
     },
-    // verticalNavClass: '.homeNav',
     components: [],
     templateUrl: document.location.origin + '/templates/home.html',
     mounted: function() {
@@ -1105,19 +1125,64 @@ window.addEventListener("load", () => {
         window.localStorage.setItem('APP_VERSION', APP_VERSION);
         return;
       }
+      this.$state.addStateListener(ACTIVE_PODCAST, this.methods.listenActivePodcast);
+      this.methods.listenActivePodcast(this.$state.getState(ACTIVE_PODCAST));
+      this.$state.addStateListener(ACTIVE_EPISODE, this.methods.listenActiveEpisode);
+      this.methods.listenActiveEpisode(this.$state.getState(ACTIVE_EPISODE));
       MAIN_PLAYER.addEventListener('loadedmetadata', this.methods.onloadedmetadata);
       MAIN_PLAYER.addEventListener('timeupdate', this.methods.ontimeupdate);
       MAIN_PLAYER.addEventListener('pause', this.methods.onpause);
       MAIN_PLAYER.addEventListener('play', this.methods.onplay);
+      const DURATION_SLIDER = document.getElementById('main_duration_slider');
+      const CURRENT_TIME = document.getElementById('main_current_time');
+      const DURATION = document.getElementById('main_duration');
+      CURRENT_TIME.innerHTML = convertTime(MAIN_PLAYER.currentTime);
+      DURATION.innerHTML = convertTime(MAIN_PLAYER.duration);
+      DURATION_SLIDER.value = MAIN_PLAYER.currentTime;
+      DURATION_SLIDER.setAttribute("max", MAIN_PLAYER.duration);
+      this.methods.togglePlayIcon();
       APP_STATE = true;
     },
     unmounted: function() {
+      this.$state.removeStateListener(ACTIVE_PODCAST, this.methods.listenActivePodcast);
+      this.$state.removeStateListener(ACTIVE_EPISODE, this.methods.listenActiveEpisode);
       MAIN_PLAYER.removeEventListener('loadedmetadata', this.methods.onloadedmetadata);
       MAIN_PLAYER.removeEventListener('timeupdate', this.methods.ontimeupdate);
       MAIN_PLAYER.removeEventListener('pause', this.methods.onpause);
       MAIN_PLAYER.removeEventListener('play', this.methods.onplay);
     },
     methods: {
+      listenActivePodcast: function(podcastId) {
+        if (podcastId == null || podcastId == false)
+          return;
+        T_PODCASTS.getItem(podcastId.toString())
+        .then((podcast) => {
+          if (podcast['image'] == null || podcast['image'] == '')
+            podcast['image'] = '/icons/icon112x112.png';
+          getThumb(podcast['image'])
+          .then((url) => {
+            const img = document.getElementById('main_thumb');
+            if (img != null) {
+              img.src = url;
+            }
+          })
+          .catch((err) => {
+            console.log(err);
+          });
+        });
+      },
+      listenActiveEpisode: function(episodeId) {
+        if (episodeId == null || episodeId == false)
+          return;
+        T_EPISODES.getItem(this.$state.getState(ACTIVE_PODCAST).toString())
+        .then((episodes) => {
+          if (episodes != null) {
+            this.setData({
+              title: episodes[this.$state.getState(ACTIVE_EPISODE)].title
+            });
+          }
+        });
+      },
       onloadedmetadata: function(evt) {
         const DURATION_SLIDER = document.getElementById('main_duration_slider');
         const DURATION = document.getElementById('main_duration');
@@ -1134,10 +1199,17 @@ window.addEventListener("load", () => {
         DURATION_SLIDER.setAttribute("max", evt.target.duration);
       },
       onpause: function() {
-        //$router.setSoftKeyCenterText('PLAY');
+        document.getElementById('main_play_btn').src = '/icons/play.png';
       },
       onplay: function() {
-        //$router.setSoftKeyCenterText('PAUSE');
+        document.getElementById('main_play_btn').src = '/icons/pause.png';
+      },
+      togglePlayIcon: function() {
+        if (MAIN_PLAYER.duration > 0 && !MAIN_PLAYER.paused) {
+          document.getElementById('main_play_btn').src = '/icons/pause.png';
+        } else {
+          document.getElementById('main_play_btn').src = '/icons/play.png';
+        }
       },
       showInputDialog: function(title, placeholder, cb = () => {}) {
         const searchDialog = Kai.createDialog(title, `<div><input id="keyword-input" type="text" placeholder="${placeholder}" class="kui-input"/></div>`, null, '', undefined, '', undefined, '', undefined, undefined, this.$router);
@@ -1196,8 +1268,37 @@ window.addEventListener("load", () => {
     },
     softKeyText: { left: 'Episodes', center: '', right: 'Menu' },
     softKeyListener: {
-      left: function() {},
-      center: function() {},
+      left: function() {
+        if (this.$state.getState(ACTIVE_PODCAST) == null || this.$state.getState(ACTIVE_EPISODE) == null)
+          return;
+        T_EPISODES.getItem(this.$state.getState(ACTIVE_PODCAST).toString())
+        .then((episodes) => {
+          console.log(episodes[this.$state.getState(ACTIVE_EPISODE)]);
+          if (episodes != null) {
+            var temp = [];
+            for (var x in episodes) {
+              temp.push(episodes[x]);
+            }
+            temp.sort((a, b) => b.date - a.date);
+            episodeListPage(this.$router, 'Main Player', temp, {
+              'Download': function(episode) {
+                console.log(selected.text, 'Download', episode);
+              }
+            }, this.$state.getState(ACTIVE_EPISODE));
+          }
+        });
+      },
+      center: function() {
+        if (this.$state.getState(ACTIVE_PODCAST) == null || this.$state.getState(ACTIVE_EPISODE) == null)
+          return;
+        if (MAIN_PLAYER.src == '')
+          return;
+        if (MAIN_PLAYER.duration > 0 && !MAIN_PLAYER.paused) {
+          MAIN_PLAYER.pause();
+        } else {
+          MAIN_PLAYER.play();
+        }
+      },
       right: function() {
         var menu = [
           {'text': 'Trending Podcast'},
