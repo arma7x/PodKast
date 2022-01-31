@@ -303,14 +303,17 @@ window.addEventListener("load", () => {
   }
 
   // DRAFT:
-  // 1. listenPodcast via Main Player[D]
+  // 1. [DONE]listenPodcast via Main Player
   // 2. play unsub podcast
   // 3. MAIN & MINI Player update podkastLastDuration
-  // 3. MAIN & MINI Player resume podkastLastDuration
-  // 4. if AUTOPLAY then MAIN.src & play
-  // 5. On enter, MAIN.src == null || MAIN.src == '', playPodcast
-  // 6. Main Player responsive UI
-  // 7. ....
+  // 4. MAIN & MINI Player resume podkastLastDuration
+  // 5. [DONE]if APP_STATE, AUTOPLAY, ACTIVE_PODCAST, ACTIVE_EPISODE then playPodcast
+  // 6. [DONE]On enter, ACTIVE_PODCAST, ACTIVE_EPISODE, MAIN.src == '' then playPodcast
+  // 7. Main Player responsive UI
+  // 8. Settings[Auto Sleep, Autoplay]
+  // 9. MAIN & MINI Player playbackrate, fast-forward/rewind
+  // 10. Offline playback(downloader + episode downloaded indicator)
+  // 11. Active Podcast & Active Episode indicator
   const listenPodcast = function($router, podcast) {
     delete podcast['podkastSubscribe'];
     delete podcast['podkastThumb'];
@@ -1150,6 +1153,9 @@ window.addEventListener("load", () => {
       DURATION_SLIDER.value = MAIN_PLAYER.currentTime;
       DURATION_SLIDER.setAttribute("max", MAIN_PLAYER.duration);
       this.methods.togglePlayIcon();
+      if (this.$state.getState(AUTOPLAY) && APP_STATE == false && this.$state.getState(ACTIVE_PODCAST) && this.$state.getState(ACTIVE_EPISODE)) {
+        this.methods.resumePodcast();
+      }
       APP_STATE = true;
     },
     unmounted: function() {
@@ -1219,6 +1225,14 @@ window.addEventListener("load", () => {
           document.getElementById('main_play_btn').src = '/icons/play.png';
         }
       },
+      resumePodcast: function() {
+        T_EPISODES.getItem(this.$state.getState(ACTIVE_PODCAST).toString())
+        .then((episodes) => {
+          if (episodes != null) {
+            playPodcast(this.$router, JSON.parse(JSON.stringify(episodes[this.$state.getState(ACTIVE_EPISODE)])));
+          }
+        });
+      },
       showInputDialog: function(title, placeholder, cb = () => {}) {
         const searchDialog = Kai.createDialog(title, `<div><input id="keyword-input" type="text" placeholder="${placeholder}" class="kui-input"/></div>`, null, '', undefined, '', undefined, '', undefined, undefined, this.$router);
         searchDialog.mounted = () => {
@@ -1282,7 +1296,6 @@ window.addEventListener("load", () => {
           return;
         T_EPISODES.getItem(this.$state.getState(ACTIVE_PODCAST).toString())
         .then((episodes) => {
-          console.log('FIND CUR:', episodes[this.$state.getState(ACTIVE_EPISODE)]);
           if (episodes != null) {
             var temp = [];
             for (var x in episodes) {
@@ -1301,8 +1314,10 @@ window.addEventListener("load", () => {
         console.log(this.$state.getState(ACTIVE_PODCAST), this.$state.getState(ACTIVE_EPISODE));
         if ([null, false].indexOf(this.$state.getState(ACTIVE_PODCAST)) > -1 || [null, false].indexOf(this.$state.getState(ACTIVE_EPISODE)) > -1)
           return;
-        if (MAIN_PLAYER.src == '')
+        if (MAIN_PLAYER.src == '' && this.$state.getState(ACTIVE_PODCAST) && this.$state.getState(ACTIVE_EPISODE)) {
+          this.methods.resumePodcast();
           return;
+        }
         if (MAIN_PLAYER.duration > 0 && !MAIN_PLAYER.paused) {
           MAIN_PLAYER.pause();
         } else {
