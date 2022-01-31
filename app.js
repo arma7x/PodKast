@@ -302,7 +302,15 @@ window.addEventListener("load", () => {
     });
   }
 
-  // DRAFT: listenPodcast via Main Player
+  // DRAFT:
+  // 1. listenPodcast via Main Player[D]
+  // 2. play unsub podcast
+  // 3. MAIN & MINI Player update podkastLastDuration
+  // 3. MAIN & MINI Player resume podkastLastDuration
+  // 4. if AUTOPLAY then MAIN.src & play
+  // 5. On enter, MAIN.src == null || MAIN.src == '', playPodcast
+  // 6. Main Player responsive UI
+  // 7. ....
   const listenPodcast = function($router, podcast) {
     delete podcast['podkastSubscribe'];
     delete podcast['podkastThumb'];
