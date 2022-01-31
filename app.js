@@ -311,7 +311,19 @@ window.addEventListener("load", () => {
     // console.log(podcast);
     T_PODCASTS.getItem(podcast['id'].toString())
     .then((savedPodcast) => {
-      console.log(savedPodcast);
+      if (savedPodcast != null) {
+        console.log('FIND:', savedPodcast['podkastCurrentEpisode'].toString());
+        T_EPISODES.getItem(podcast['id'].toString())
+        .then((savedEpisodes) => {
+          console.log('FOUND:', savedEpisodes[savedPodcast['podkastCurrentEpisode']]);
+          playPodcast($router, savedEpisodes[savedPodcast['podkastCurrentEpisode']], true);
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+      } else {
+        // syncPodcast($router, podcast['id'].toString(), false)
+      }
     })
     .catch((err) => {
       console.log(err);
