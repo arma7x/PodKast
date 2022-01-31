@@ -311,10 +311,10 @@ window.addEventListener("load", () => {
     T_PODCASTS.getItem(podcast['id'].toString())
     .then((savedPodcast) => {
       if (savedPodcast != null) {
-        console.log('FIND:', savedPodcast['podkastCurrentEpisode'].toString());
+        // console.log('FIND:', savedPodcast['podkastCurrentEpisode'].toString());
         T_EPISODES.getItem(podcast['id'].toString())
         .then((savedEpisodes) => {
-          console.log('FOUND:', savedEpisodes[savedPodcast['podkastCurrentEpisode']]);
+          // console.log('FOUND:', savedEpisodes[savedPodcast['podkastCurrentEpisode']]);
           playPodcast($router, savedEpisodes[savedPodcast['podkastCurrentEpisode']], true);
         })
         .catch((err) => {
@@ -696,7 +696,6 @@ window.addEventListener("load", () => {
   }
 
   const episodeListPage = function($router, title, data = null, rightSoftKeyCallback = {}, episodeId = null) {
-    console.log(data, episodeId);
     $router.push(
       new Kai({
         name: 'episodeListPage',
@@ -842,7 +841,7 @@ window.addEventListener("load", () => {
           left: function() {
             if (this.data.list[this.verticalNavIndex] == null)
               return;
-            console.log(this.data.list[this.verticalNavIndex].description);
+            // console.log(this.data.list[this.verticalNavIndex].description);
             descriptionPage(this.$router, this.data.list[this.verticalNavIndex]);
           },
           center: function() {
@@ -964,7 +963,7 @@ window.addEventListener("load", () => {
             this.methods.optimize();
           },
           processDataNull: function(subscribedList) {
-            console.log(subscribedList);
+            // console.log(subscribedList);
             if (subscribedList.length === 0) {
               this.setData({ list: [] });
               return;
@@ -1026,7 +1025,7 @@ window.addEventListener("load", () => {
           left: function() {
             if (this.data.list[this.verticalNavIndex] == null)
               return;
-            console.log(this.data.list[this.verticalNavIndex]);
+            // console.log(this.data.list[this.verticalNavIndex]);
             descriptionPage($router, this.data.list[this.verticalNavIndex]);
           },
           center: function() {
@@ -1273,7 +1272,7 @@ window.addEventListener("load", () => {
           return;
         T_EPISODES.getItem(this.$state.getState(ACTIVE_PODCAST).toString())
         .then((episodes) => {
-          console.log(episodes[this.$state.getState(ACTIVE_EPISODE)]);
+          // console.log('FIND CUR:', episodes[this.$state.getState(ACTIVE_EPISODE)]);
           if (episodes != null) {
             var temp = [];
             for (var x in episodes) {
