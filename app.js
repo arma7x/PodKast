@@ -673,6 +673,14 @@ window.addEventListener("load", () => {
           state.removeStateListener(TABLE_BOOKMARKED, this.methods.listenState);
         },
         methods: {
+          gotoPage: function(cur) {
+            this.setData({
+              list: this.data.pages[cur],
+              pageCursor: cur,
+            });
+            // $router.showToast(`Page ${this.data.pageCursor + 1}/${this.data.pages.length}`);
+            this.methods.optimize();
+          },
           listenState: function(updated) {
             // console.log('listenState', TABLE_BOOKMARKED, updated);
             if (data == null) {
@@ -684,7 +692,7 @@ window.addEventListener("load", () => {
           processData: function(bookmarkList) {
             // console.log('processData', TABLE_BOOKMARKED, bookmarkList);
             data.forEach((i) => {
-              i['podkastTitle'] = i['title'].length >= 31 ? i['title'].slice(0, 28) + '...' : i['title'];
+              i['podkastTitle'] = i['title'].length >= 41 ? i['title'].slice(0, 38) + '...' : i['title'];
               i['podkastThumb'] = this.data.listThumb[i['id']] || '/icons/loading.gif';
               i['podkastBookmark'] = false;
               if (i['feedImage'] == '' || i['feedImage'] == null)
@@ -696,8 +704,14 @@ window.addEventListener("load", () => {
                   i['podkastBookmark'] = true;
               }
             });
-            this.setData({ list: data });
-            this.methods.optimize();
+            const pages = [];
+            const temp = JSON.parse(JSON.stringify(data));
+            while (temp.length > 0) {
+              pages.push(temp.splice(0, 20));
+            }
+            this.data.pages = pages;
+            this.methods.gotoPage(this.data.pageCursor);
+            //this.setData({ list: data });
           },
           processDataNull: function(bookmarkList) {
             if (Object.keys(bookmarkList).length === 0) {
@@ -720,7 +734,7 @@ window.addEventListener("load", () => {
                     if (episodes[id]['image'] == '' || episodes[id]['image'] == null)
                       episodes[id]['image'] = episodes[id]['feedImage'];
                     episodes[id]['podkastThumb'] = this.data.listThumb[id] || '/icons/loading.gif';
-                    episodes[id]['podkastTitle'] = episodes[id]['title'].length >= 31 ? episodes[id]['title'].slice(0, 28) + '...' : episodes[id]['title'];
+                    episodes[id]['podkastTitle'] = episodes[id]['title'].length >= 41 ? episodes[id]['title'].slice(0, 38) + '...' : episodes[id]['title'];
                     episodes[id]['podkastBookmark'] = true;
                     temp.push(episodes[id]);
                   }
@@ -729,8 +743,9 @@ window.addEventListener("load", () => {
                     if (temp.length < this.verticalNavIndex + 1) {
                       this.verticalNavIndex--;
                     }
-                    this.setData({ list: temp });
-                    this.methods.optimize();
+                    this.data.pages = [temp];
+                    this.methods.gotoPage(this.data.pageCursor);
+                    //this.setData({ list: temp });
                   }
                 });
               });
@@ -738,8 +753,13 @@ window.addEventListener("load", () => {
           },
           optimize: function() {
             this.data.list.forEach((l) => {
-              if (this.data.listThumb[l.id])
+              if (this.data.listThumb[l.id]) {
+                const img = document.getElementById(`thumb_${l.feedId}_${l.id}`);
+                if (img != null) {
+                  img.src = this.data.listThumb[l.id];
+                }
                 return;
+              }
               setTimeout(() => {
                 getThumb(l.image)
                 .then((url) => {
@@ -782,7 +802,7 @@ window.addEventListener("load", () => {
             }
             if (this.data.list[this.verticalNavIndex]['podkastBookmark'])
               menu.push({ 'text': 'Remove From Favourite' });
-            this.$router.showOptionMenu('More', menu, 'SELECT', (selected) => {
+            this.$router.showOptionMenu(`More(Page ${this.data.pageCursor + 1}/${this.data.pages.length})`, menu, 'SELECT', (selected) => {
               if (rightSoftKeyCallback[selected.text]) {
                 rightSoftKeyCallback[selected.text](JSON.parse(JSON.stringify(this.data.list[this.verticalNavIndex])));
               } else if (selected.text === 'Add To Favourite') {
@@ -794,10 +814,26 @@ window.addEventListener("load", () => {
           }
         },
         dPadNavListener: {
+          arrowLeft: function() {
+            if (this.data.pageCursor <= 0)
+              return;
+            else {
+              this.verticalNavIndex = -1;
+              this.methods.gotoPage(this.data.pageCursor - 1);
+            }
+          },
           arrowUp: function() {
             if (this.verticalNavIndex <= 0)
               return;
             this.navigateListNav(-1);
+          },
+          arrowRight: function() {
+            if (this.data.pageCursor >= this.data.pages.length - 1)
+              return;
+            else {
+              this.verticalNavIndex = -1;
+              this.methods.gotoPage(this.data.pageCursor + 1);
+            }
           },
           arrowDown: function() {
             const listNav = document.querySelectorAll(this.verticalNavClass);
