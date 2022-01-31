@@ -339,6 +339,11 @@ window.addEventListener("load", () => {
 
   const playPodcast = function($router, episode, playable = true) {
     console.log(episode, playable);
+    MINI_PLAYER.src = '';
+    MINI_PLAYER.pause();
+    MINI_PLAYER.currentTime = 0;
+    MAIN_PLAYER.src = episode['enclosureUrl'];
+    MAIN_PLAYER.play();
   }
 
   const playEpisode = function($router, episode, playable = true) {
@@ -627,6 +632,7 @@ window.addEventListener("load", () => {
             console.log(err);
           });
           setTimeout(() => {
+            MAIN_PLAYER.pause();
             DURATION_SLIDER = document.getElementById('mini_duration_slider');
             CURRENT_TIME = document.getElementById('mini_current_time');
             DURATION = document.getElementById('mini_duration');
@@ -1085,13 +1091,7 @@ window.addEventListener("load", () => {
   const home = new Kai({
     name: 'home',
     data: {
-      title: 'Podcast Title - Podcast Ep Subtitle',
-      album_art: '/icons/icon112x112.png',
-      play_icon: '/icons/play.png',
-      slider_value: 30,
-      slider_max: 100,
-      current_time: '00:00',
-      duration: '00:00',
+      title: 'home',
     },
     // verticalNavClass: '.homeNav',
     components: [],
@@ -1105,10 +1105,40 @@ window.addEventListener("load", () => {
         window.localStorage.setItem('APP_VERSION', APP_VERSION);
         return;
       }
+      MAIN_PLAYER.addEventListener('loadedmetadata', this.methods.onloadedmetadata);
+      MAIN_PLAYER.addEventListener('timeupdate', this.methods.ontimeupdate);
+      MAIN_PLAYER.addEventListener('pause', this.methods.onpause);
+      MAIN_PLAYER.addEventListener('play', this.methods.onplay);
       APP_STATE = true;
     },
-    unmounted: function() {},
+    unmounted: function() {
+      MAIN_PLAYER.removeEventListener('loadedmetadata', this.methods.onloadedmetadata);
+      MAIN_PLAYER.removeEventListener('timeupdate', this.methods.ontimeupdate);
+      MAIN_PLAYER.removeEventListener('pause', this.methods.onpause);
+      MAIN_PLAYER.removeEventListener('play', this.methods.onplay);
+    },
     methods: {
+      onloadedmetadata: function(evt) {
+        const DURATION_SLIDER = document.getElementById('main_duration_slider');
+        const DURATION = document.getElementById('main_duration');
+        DURATION.innerHTML = convertTime(evt.target.duration);
+        DURATION_SLIDER.setAttribute("max", evt.target.duration);
+      },
+      ontimeupdate: function(evt) {
+        const DURATION_SLIDER = document.getElementById('main_duration_slider');
+        const CURRENT_TIME = document.getElementById('main_current_time');
+        const DURATION = document.getElementById('main_duration');
+        CURRENT_TIME.innerHTML = convertTime(evt.target.currentTime);
+        DURATION.innerHTML = convertTime(evt.target.duration);
+        DURATION_SLIDER.value = evt.target.currentTime;
+        DURATION_SLIDER.setAttribute("max", evt.target.duration);
+      },
+      onpause: function() {
+        //$router.setSoftKeyCenterText('PLAY');
+      },
+      onplay: function() {
+        //$router.setSoftKeyCenterText('PAUSE');
+      },
       showInputDialog: function(title, placeholder, cb = () => {}) {
         const searchDialog = Kai.createDialog(title, `<div><input id="keyword-input" type="text" placeholder="${placeholder}" class="kui-input"/></div>`, null, '', undefined, '', undefined, '', undefined, undefined, this.$router);
         searchDialog.mounted = () => {
@@ -1329,7 +1359,7 @@ window.addEventListener("load", () => {
         }, () => {});
       }
     },
-    softKeyInputFocusText: { left: 'Copy', center: 'Paste', right: 'Cut' },
+    softKeyInputFocusText: { left: '', center: '', right: '' },
     softKeyInputFocusListener: {
       left: function() {},
       center: function() {},
@@ -1337,13 +1367,13 @@ window.addEventListener("load", () => {
     },
     dPadNavListener: {
       arrowUp: function() {
-        this.navigateListNav(-1);
+        volumeUp(MAIN_PLAYER);
       },
       arrowRight: function() {
         // this.navigateTabNav(-1);
       },
       arrowDown: function() {
-        this.navigateListNav(1);
+        volumeDown(MAIN_PLAYER);
       },
       arrowLeft: function() {
         // this.navigateTabNav(1);
