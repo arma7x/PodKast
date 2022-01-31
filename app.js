@@ -559,7 +559,7 @@ window.addEventListener("load", () => {
 
   const miniPlayer = function($router, episode) {
     // feedTitle title enclosureUrl
-    console.log(episode);
+    // console.log(episode);
     var DURATION_SLIDER, CURRENT_TIME, DURATION;
     $router.showBottomSheet(
       new Kai({
@@ -584,6 +584,20 @@ window.addEventListener("load", () => {
           right: function() {}
         },
         mounted: function() {
+          if (episode['feedImage'] == null || episode['feedImage'] == '')
+            episode['feedImage'] = '/icons/icon112x112.png';
+          if (episode['image'] == null || episode['image'] == '')
+            episode['image'] = episode['feedImage'];
+          getThumb(episode['image'])
+          .then((url) => {
+            const img = document.getElementById('mini_thumb');
+            if (img != null) {
+              img.src = url;
+            }
+          })
+          .catch((err) => {
+            console.log(err);
+          });
           setTimeout(() => {
             DURATION_SLIDER = document.getElementById('mini_duration_slider');
             CURRENT_TIME = document.getElementById('mini_current_time');
