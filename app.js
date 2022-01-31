@@ -437,7 +437,7 @@ window.addEventListener("load", () => {
     });
   }
 
-  const fetchThumb = function(TABLE_SRC) {
+  const thumbRepository = function(TABLE_SRC) {
     const thumbHash = {};
 
     return function(url) {
@@ -501,7 +501,7 @@ window.addEventListener("load", () => {
     }
   }
 
-  const getThumb = fetchThumb(T_THUMBS);
+  const getThumb = thumbRepository(T_THUMBS);
 
   const changelogs = new Kai({
     name: 'changelogs',
