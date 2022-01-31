@@ -39,22 +39,21 @@
   <div class="kai-container" style="margin:5px;">
     <div>
       <h3 class="marquee">
-        <span>{{ title }}</span>
+        <span id="main_title">PodKast</span>
       </h3>
     </div>
-    <div style="display:flex;flex-direction:column;justify-content:center;align-items:center;">
-      <img style="border-radius:5px;" height="150px" width="150px" src="{{ album_art }}"/>
-      <pre class="mini_title">{{ episode.title }}</pre>
+    <div class="kui-row-center" style="margin-top:5px;justify-content:center;align-items:center;">
+      <img id="main_thumb" style="border-radius:5px;" height="150px" width="150px" src="/icons/icon112x112.png"/>
     </div>
 
-    <div style="">
-      <input id="home_duration_slider" style="width:99%;background:#ccc;border-color:#ccc;" value="{{ slider_value }}" type="range" min="0" max="{{ slider_max }}" disabled/>
+    <div style="margin-top:5px;">
+      <input id="main_duration_slider" style="width:99%;background:#ccc;border-color:#ccc;" value="0" type="range" min="0" max="100" disabled/>
     </div>
 
     <div class="kui-row-center">
-      <div id="home_current_time">{{ current_time }}</div>
-      <img id="play_btn" width="36px" height="36px" src="{{ play_icon }}"/>
-      <div>{{ duration }}</div>
+      <div id="main_current_time" style="width:34%;">00:00</div>
+      <img id="main_play_btn" width="36px" height="36px" src="/icons/play.png"/>
+      <div id="main_duration" style="width:34%;text-align:right;">00:00</div>
     </div>
   </div>
 </div>

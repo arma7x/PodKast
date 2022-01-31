@@ -133,8 +133,8 @@ window.addEventListener("load", () => {
     [TABLE_SUBSCRIBED]: [],
     [TABLE_BOOKMARKED]: {},
     [AUTOPLAY]: localStorage.getItem(AUTOPLAY) || false,
-    [ACTIVE_PODCAST]: localStorage.getItem(ACTIVE_PODCAST),
-    [ACTIVE_EPISODE]: localStorage.getItem(ACTIVE_EPISODE),
+    [ACTIVE_PODCAST]: localStorage.getItem(ACTIVE_PODCAST) || false,
+    [ACTIVE_EPISODE]: localStorage.getItem(ACTIVE_EPISODE) || false,
   });
 
   const initTableSubscribed = function() {
@@ -341,6 +341,8 @@ window.addEventListener("load", () => {
     localStorage.setItem(ACTIVE_PODCAST, episode['feedId']);
     state.setState(ACTIVE_EPISODE, episode['id']);
     localStorage.setItem(ACTIVE_EPISODE, episode['id']);
+    console.log(state.getState(ACTIVE_PODCAST), localStorage.getItem(ACTIVE_PODCAST));
+    console.log(state.getState(ACTIVE_EPISODE), localStorage.getItem(ACTIVE_EPISODE));
     // console.log(state.getState(ACTIVE_PODCAST), state.getState(ACTIVE_EPISODE), episode, playable);
     MINI_PLAYER.src = '';
     MINI_PLAYER.pause();
@@ -1173,12 +1175,11 @@ window.addEventListener("load", () => {
       listenActiveEpisode: function(episodeId) {
         if (episodeId == null || episodeId == false)
           return;
+        console.log('listenActiveEpisode');
         T_EPISODES.getItem(this.$state.getState(ACTIVE_PODCAST).toString())
         .then((episodes) => {
           if (episodes != null) {
-            this.setData({
-              title: episodes[this.$state.getState(ACTIVE_EPISODE)].title
-            });
+            document.getElementById('main_title').textContent = episodes[this.$state.getState(ACTIVE_EPISODE)].title
           }
         });
       },
@@ -1268,11 +1269,12 @@ window.addEventListener("load", () => {
     softKeyText: { left: 'Episodes', center: '', right: 'Menu' },
     softKeyListener: {
       left: function() {
-        if (this.$state.getState(ACTIVE_PODCAST) == null || this.$state.getState(ACTIVE_EPISODE) == null)
+        console.log(this.$state.getState(ACTIVE_PODCAST), this.$state.getState(ACTIVE_EPISODE));
+        if ([null, false].indexOf(this.$state.getState(ACTIVE_PODCAST)) > -1 || [null, false].indexOf(this.$state.getState(ACTIVE_EPISODE)) > -1)
           return;
         T_EPISODES.getItem(this.$state.getState(ACTIVE_PODCAST).toString())
         .then((episodes) => {
-          // console.log('FIND CUR:', episodes[this.$state.getState(ACTIVE_EPISODE)]);
+          console.log('FIND CUR:', episodes[this.$state.getState(ACTIVE_EPISODE)]);
           if (episodes != null) {
             var temp = [];
             for (var x in episodes) {
@@ -1288,7 +1290,8 @@ window.addEventListener("load", () => {
         });
       },
       center: function() {
-        if (this.$state.getState(ACTIVE_PODCAST) == null || this.$state.getState(ACTIVE_EPISODE) == null)
+        console.log(this.$state.getState(ACTIVE_PODCAST), this.$state.getState(ACTIVE_EPISODE));
+        if ([null, false].indexOf(this.$state.getState(ACTIVE_PODCAST)) > -1 || [null, false].indexOf(this.$state.getState(ACTIVE_EPISODE)) > -1)
           return;
         if (MAIN_PLAYER.src == '')
           return;
