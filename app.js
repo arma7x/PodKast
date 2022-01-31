@@ -421,16 +421,23 @@ window.addEventListener("load", () => {
             req.responseType = 'arraybuffer';
             req.onreadystatechange = function() {
               if (req.readyState == 4) {
-                if (req.status >= 200 && req.status <= 299) {
-                  TABLE_SRC.setItem(id, req.response)
+                if (req.status >= 200 && req.status <= 399) {
+                  const tempURL = window.URL.createObjectURL(new Blob([req.response]));
+                  resizeImage(tempURL)
+                  .then((imgBlob) => {
+                    return TABLE_SRC.setItem(id, imgBlob);
+                  })
                   .then((image) => {
-                    const blobURL = window.URL.createObjectURL(new Blob([image]));
+                    const blobURL = window.URL.createObjectURL(image);
                     thumbHash[id] = blobURL;
                     resolve(blobURL);
                   }).catch((err) => {
                     const localURL = '/icons/icon112x112.png';
                     thumbHash[id] = localURL;
                     resolve(localURL);
+                  })
+                  .finally(() => {
+                    URL.revokeObjectURL(tempURL);
                   });
                 } else {
                   const localURL = '/icons/icon112x112.png';
@@ -442,7 +449,12 @@ window.addEventListener("load", () => {
             req.open('GET', url, true);
             req.send();
           } else {
-            const blobURL = window.URL.createObjectURL(new Blob([blob]));
+            var blobURL;;
+            if (blob instanceof Blob) {
+              blobURL = window.URL.createObjectURL(blob);
+            } else if (blob instanceof ArrayBuffer) {
+              blobURL = window.URL.createObjectURL(new Blob([blob]));
+            }
             thumbHash[id] = blobURL;
             resolve(blobURL);
           }
@@ -547,7 +559,7 @@ window.addEventListener("load", () => {
 
   const miniPlayer = function($router, episode) {
     // feedTitle title enclosureUrl
-    // console.log(episode);
+    console.log(episode);
     var DURATION_SLIDER, CURRENT_TIME, DURATION;
     $router.showBottomSheet(
       new Kai({

@@ -55,34 +55,25 @@ const pushLocalNotification = function(title, body) {
   });
 }
 
-const renderImg = function(id, src) {
-  var img = document.getElementById(id);
-  img.crossOrigin = 'anonymous';
-  img.src = src;
-}
-
-const resizeImage = function(id, url, cb) {
-  var img = new Image();
-  img.crossOrigin = 'Anonymous';
-  img.src = url;
-  img.onload = function() {
-    var elem = document.createElement('canvas');
-    var scale = 4;
-    elem.width = img.naturalWidth / scale;
-    elem.height = img.naturalHeight / scale;
-    var ctx = elem.getContext('2d');
-    ctx.drawImage(img, 0, 0, elem.width, elem.height);
-    if (cb != undefined && typeof cb == 'function') {
-      cb(id, ctx.canvas.toDataURL('image/png', 100));
+const resizeImage = function(url) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = "Anonymous";
+    img.src = url;
+    img.onload = () => {
+      const elem = document.createElement('canvas');
+      elem.width = 300;
+      elem.height = 300;
+      const ctx = elem.getContext('2d');
+      ctx.drawImage(img, 0, 0, elem.width, elem.height);
+      ctx.canvas.toBlob((blob) => {
+        resolve(blob)
+      }, 'image/jpeg', 0.5);
     }
-    console.log('Success', id, url);
-  }
-  img.onerror = function(e) {
-    if (cb != undefined && typeof cb == 'function') {
-      cb(id, url);
+    img.onerror = (err) => {
+      reject(err);
     }
-    console.log('Fail', id, url);
-  }
+  });
 }
 
 const requireProxy = function(url) {
