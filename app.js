@@ -303,7 +303,19 @@ window.addEventListener("load", () => {
     });
   }
 
-  const playPodcast = function($router, id) {
+  // DRAFT: listenPodcast via Main Player
+  const listenPodcast = function($router, podcast) {
+    delete podcast['podkastSubscribe'];
+    delete podcast['podkastThumb'];
+    delete podcast['podkastTitle'];
+    // console.log(podcast);
+    T_PODCASTS.getItem(podcast['id'].toString())
+    .then((savedPodcast) => {
+      console.log(savedPodcast);
+    })
+    .catch((err) => {
+      console.log(err);
+    });
     // if ID not in CACHE GOTO syncPodcast($router, id, true)
     // else
     // curEp = T_PODCASTS[ID][podkastCurrentEpisode]
@@ -311,6 +323,10 @@ window.addEventListener("load", () => {
     // - podkastLocalPath
     // - podkastLastDuration
     // MAIN_PLAYER
+  }
+
+  const playPodcast = function($router, episode, playable = true) {
+    console.log(episode, playable);
   }
 
   const playEpisode = function($router, episode, playable = true) {
@@ -658,7 +674,6 @@ window.addEventListener("load", () => {
     );
   }
 
-  // DRAFT: Pagination
   const episodeListPage = function($router, title, data = null, rightSoftKeyCallback = {}, episodeId = null) {
     console.log(data);
     $router.push(
@@ -978,7 +993,8 @@ window.addEventListener("load", () => {
           center: function() {
             if (this.data.list[this.verticalNavIndex] == null)
               return;
-            console.log(this.data.list[this.verticalNavIndex]);
+            // console.log(this.data.list[this.verticalNavIndex]);
+            listenPodcast($router, JSON.parse(JSON.stringify(this.data.list[this.verticalNavIndex])));
           },
           right: function() {
             if (this.data.list[this.verticalNavIndex] == null)
