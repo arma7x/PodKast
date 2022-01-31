@@ -404,39 +404,59 @@ window.addEventListener("load", () => {
     });
   }
 
-  const fetchThumb = function(url, TABLE_SRC) {
-    var id = sha1(btoa(url));
-    return new Promise((resolve, reject) => {
-      TABLE_SRC.getItem(id)
-      .then((blob) => {
-        if (blob == null) {
-          const req = new XMLHttpRequest({ mozSystem: true });
-          req.responseType = 'arraybuffer';
-          req.onreadystatechange = function() {
-            if (req.readyState == 4) {
-              if (req.status >= 200 && req.status <= 299) {
-                TABLE_SRC.setItem(id, req.response)
-                .then((image) => {
-                  resolve(window.URL.createObjectURL(new Blob([image])));
-                }).catch((err) => {
-                  resolve('/icons/icon112x112.png');
-                });
-              } else {
-                resolve('/icons/icon112x112.png');
+  const fetchThumb = function(TABLE_SRC) {
+    const thumbHash = {};
+
+    return function(url) {
+      const id = sha1(btoa(url));
+      if (thumbHash[id] != null) {
+        console.log('FROM HASH', id, thumbHash[id]);
+        return Promise.resolve(thumbHash[id]);
+      }
+      return new Promise((resolve, reject) => {
+        TABLE_SRC.getItem(id)
+        .then((blob) => {
+          if (blob == null) {
+            const req = new XMLHttpRequest({ mozSystem: true });
+            req.responseType = 'arraybuffer';
+            req.onreadystatechange = function() {
+              if (req.readyState == 4) {
+                if (req.status >= 200 && req.status <= 299) {
+                  TABLE_SRC.setItem(id, req.response)
+                  .then((image) => {
+                    const blobURL = window.URL.createObjectURL(new Blob([image]));
+                    thumbHash[id] = blobURL;
+                    resolve(blobURL);
+                  }).catch((err) => {
+                    const localURL = '/icons/icon112x112.png';
+                    thumbHash[id] = localURL;
+                    resolve(localURL);
+                  });
+                } else {
+                  const localURL = '/icons/icon112x112.png';
+                  thumbHash[id] = localURL;
+                  resolve(localURL);
+                }
               }
-            }
-          };
-          req.open('GET', url, true);
-          req.send();
-        } else {
-          resolve(window.URL.createObjectURL(new Blob([blob])));
-        }
-      })
-      .catch(() => {
-        resolve('/icons/icon112x112.png');
+            };
+            req.open('GET', url, true);
+            req.send();
+          } else {
+            const blobURL = window.URL.createObjectURL(new Blob([blob]));
+            thumbHash[id] = blobURL;
+            resolve(blobURL);
+          }
+        })
+        .catch(() => {
+          const localURL = '/icons/icon112x112.png';
+          thumbHash[id] = localURL;
+          resolve(localURL);
+        });
       });
-    });
+    }
   }
+
+  const getThumb = fetchThumb(T_THUMBS);
 
   const changelogs = new Kai({
     name: 'changelogs',
@@ -705,11 +725,11 @@ window.addEventListener("load", () => {
             }
           },
           optimize: function() {
-            setTimeout(() => {
-              this.data.list.forEach((l) => {
-                if (this.data.listThumb[l.id])
-                  return;
-                fetchThumb(l.image, T_THUMBS)
+            this.data.list.forEach((l) => {
+              if (this.data.listThumb[l.id])
+                return;
+              setTimeout(() => {
+                getThumb(l.image)
                 .then((url) => {
                   const img = document.getElementById(`thumb_${l.feedId}_${l.id}`);
                   if (img != null) {
@@ -720,8 +740,8 @@ window.addEventListener("load", () => {
                 .catch((err) => {
                   console.log(err);
                 });
-              });
-            }, 500);
+              }, randomIntFromInterval(5, 10) * 100);
+            });
           }
         },
         softKeyText: { left: 'Description', center: 'PLAY', right: 'More' },
@@ -866,11 +886,11 @@ window.addEventListener("load", () => {
             });
           },
           optimize: function() {
-            setTimeout(() => {
-              this.data.list.forEach((l) => {
-                if (this.data.listThumb[l.id])
-                  return;
-                fetchThumb(l.image, T_THUMBS)
+            this.data.list.forEach((l) => {
+              if (this.data.listThumb[l.id])
+                return;
+              setTimeout(() => {
+                getThumb(l.image)
                 .then((url) => {
                   const img = document.getElementById(`thumb_${l.id}`);
                   if (img != null) {
@@ -881,8 +901,8 @@ window.addEventListener("load", () => {
                 .catch((err) => {
                   console.log(err);
                 });
-              });
-            }, 500);
+              }, randomIntFromInterval(5, 10) * 100);
+            });
           }
         },
         softKeyText: { left: 'Description', center: 'LISTEN', right: 'More' },
