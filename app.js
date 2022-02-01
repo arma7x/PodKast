@@ -15,6 +15,8 @@ const AUTOSLEEP = 'AUTOSLEEP';
 const ACTIVE_PODCAST = 'ACTIVE_PODCAST';
 const ACTIVE_EPISODE = 'ACTIVE_EPISODE';
 
+const DS = new DataStorage((fileRegistry, documentTree, groups) => console.log(fileRegistry, documentTree, groups), (status) => console.log(status), true);
+
 window.addEventListener("load", () => {
 
   const DEFAULT_VOLUME = 0.02;

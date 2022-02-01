@@ -78,11 +78,91 @@ const DataStorage = (function() {
     enumerate(SDCARDS, 0, files, cb);
   }
 
+  function getFile(name, success, error, getEditable) {
+    var request;
+    if (getEditable === true) {
+      request = getSDCard(getStorageNameByPath(name)).getEditable(name);
+    } else {
+      request = getSDCard(getStorageNameByPath(name)).get(name);
+    }
+    request.onsuccess = function () {
+      if (success !== undefined) {
+        success(this.result);
+      }
+    }
+    request.onerror = function () {
+      if (error !== undefined) {
+        error(this.error);
+      }
+    }
+  }
+
+  function getChild(segments, tree, parent, root) {
+    if (segments.length === 1) {
+      tree[parent] = root
+      return tree;
+    } else {
+      if (tree[parent] === undefined) {
+        tree[parent] = {}
+      }
+      tree[parent] = getChild(segments.slice(1, segments.length), tree[parent], segments.slice(1, segments.length)[0], root)
+      return tree;
+    }
+  }
+
+  function indexingDocuments(files, _this) {
+    var docTree = {}
+    files.forEach(function(element) {
+      if (element[0] === '/') {
+        element = element.replace('/', '');
+        _this.trailingSlash = '/';
+      }
+      var folder = element.split('/')[0] === '' ? 'root' : element.split('/')[0];
+      docTree = getChild(element.split('/'), docTree, folder, element);
+    })
+    return docTree;
+  }
+
+  function groupByType(files, cb = ()=>{}) {
+    var _taskLength = files.length;
+    var _taskFinish = 0;
+    var _groups = {};
+    files.forEach(function(element) {
+      getFile(element, function(file) {
+        var type = 'unknown'
+        if (file.type === '') {
+          var mime = file.name.split('.');
+          if (mime.length > 1 && mime[mime.length - 1] !== '') {
+            type = mime[mime.length - 1]
+          }
+          if (_groups[type] == undefined) {
+            _groups[type] = []
+          }
+        } else {
+          var mime = file.type.split('/');
+          type = mime[0]
+          if (_groups[type] == undefined) {
+            _groups[type] = []
+          }
+        }
+        _groups[type].push(file.name);
+        _taskFinish++;
+        if (_taskFinish === _taskLength) {
+          cb(_groups);
+        }
+      });
+    })
+    return _groups;
+  }
+
   function DataStorage(onChange, onReady, indexing = true) {
     this.init(onChange, onReady, indexing);
   }
 
   DataStorage.prototype.init = function(onChange = () => {}, onReady = () => {}, indexing = true) {
+    this.indexing = indexing;
+    this.deviceStorage = SDCARD;
+    this.deviceStorages = SDCARDS;
     this.trailingSlash = '';
     this.isReady = false;
     this.onChange = onChange;
@@ -91,24 +171,27 @@ const DataStorage = (function() {
     this.fileAttributeRegistry = {};
     this.documentTree = {};
     this.groups = {};
-    if (indexing) {
-      this.indexingStorage();
-    }
-    this._internalChangeListener = (event) => {
+    this.indexingStorage();
+    this.onChangeListener = (event) => {
+      // event.type  = change
+      // event.reason = created | deleted | modified
+      console.log(event);
       this.indexingStorage();
     }
     SDCARDS.forEach((c) => {
-      c.addEventListener("change", this._internalChangeListener);
+      c.addEventListener("change", this.onChangeListener);
     });
   }
 
   DataStorage.prototype.destroy = function() {
     SDCARDS.forEach((c) => {
-      c.removeEventListener("change", this._internalChangeListener);
+      c.removeEventListener("change", this.onChangeListener);
     });
   }
 
   DataStorage.prototype.indexingStorage = function() {
+    if (!this.indexing)
+      return;
     var _this = this;
     var files = [];
     _this.isReady = false;
@@ -395,83 +478,6 @@ const DataStorage = (function() {
         }
       }
     });
-  }
-
-  function getFile(name, success, error, getEditable) {
-    var request;
-    if (getEditable === true) {
-      request = getSDCard(getStorageNameByPath(name)).getEditable(name);
-    } else {
-      request = getSDCard(getStorageNameByPath(name)).get(name);
-    }
-    request.onsuccess = function () {
-      if (success !== undefined) {
-        success(this.result);
-      }
-    }
-    request.onerror = function () {
-      if (error !== undefined) {
-        error(this.error);
-      }
-    }
-  }
-
-  function getChild(segments, tree, parent, root) {
-    if (segments.length === 1) {
-      tree[parent] = root
-      return tree;
-    } else {
-      if (tree[parent] === undefined) {
-        tree[parent] = {}
-      }
-      tree[parent] = getChild(segments.slice(1, segments.length), tree[parent], segments.slice(1, segments.length)[0], root)
-      return tree;
-    }
-  }
-
-  function indexingDocuments(files, _this) {
-    var docTree = {}
-    files.forEach(function(element) {
-      if (element[0] === '/') {
-        element = element.replace('/', '');
-        _this.trailingSlash = '/';
-      }
-      var folder = element.split('/')[0] === '' ? 'root' : element.split('/')[0];
-      docTree = getChild(element.split('/'), docTree, folder, element);
-    })
-    return docTree;
-  }
-
-  function groupByType(files, cb = ()=>{}) {
-    var _taskLength = files.length;
-    var _taskFinish = 0;
-    var _groups = {};
-    files.forEach(function(element) {
-      getFile(element, function(file) {
-        var type = 'unknown'
-        if (file.type === '') {
-          var mime = file.name.split('.');
-          if (mime.length > 1 && mime[mime.length - 1] !== '') {
-            type = mime[mime.length - 1]
-          }
-          if (_groups[type] == undefined) {
-            _groups[type] = []
-          }
-        } else {
-          var mime = file.type.split('/');
-          type = mime[0]
-          if (_groups[type] == undefined) {
-            _groups[type] = []
-          }
-        }
-        _groups[type].push(file.name);
-        _taskFinish++;
-        if (_taskFinish === _taskLength) {
-          cb(_groups);
-        }
-      });
-    })
-    return _groups;
   }
 
   DataStorage.prototype.__getFile__ = getFile;
