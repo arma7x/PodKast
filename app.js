@@ -198,6 +198,7 @@ window.addEventListener("load", () => {
     delete episode['podkastTitle'];
     delete episode['podkastThumb'];
     delete episode['podkastBookmark'];
+    delete episode['podkastCursor'];
     playEpisode($router, episode, false)
     .then(() => {
       return T_BOOKMARKED.getItem(episode['feedId'].toString());
@@ -318,6 +319,7 @@ window.addEventListener("load", () => {
     delete podcast['podkastSubscribe'];
     delete podcast['podkastThumb'];
     delete podcast['podkastTitle'];
+    delete podcast['podkastListening'];
     // console.log(podcast);
     T_PODCASTS.getItem(podcast['id'].toString())
     .then((savedPodcast) => {
@@ -326,7 +328,10 @@ window.addEventListener("load", () => {
         T_EPISODES.getItem(podcast['id'].toString())
         .then((savedEpisodes) => {
           // console.log('FOUND:', savedEpisodes[savedPodcast['podkastCurrentEpisode']]);
-          playPodcast($router, savedEpisodes[savedPodcast['podkastCurrentEpisode']], true);
+          setTimeout(() => {
+            playPodcast($router, savedEpisodes[savedPodcast['podkastCurrentEpisode']], true);
+          }, 1000);
+          $router.pop();
         })
         .catch((err) => {
           console.log(err);
@@ -366,6 +371,7 @@ window.addEventListener("load", () => {
     delete episode['podkastTitle'];
     delete episode['podkastThumb'];
     delete episode['podkastBookmark'];
+    delete episode['podkastCursor'];
     return T_EPISODES.getItem(episode['feedId'].toString())
     .then((episodesObj) => {
       if (episodesObj == null) {
@@ -757,6 +763,7 @@ window.addEventListener("load", () => {
           processData: function(bookmarkList) {
             // console.log('processData', TABLE_BOOKMARKED, bookmarkList);
             data.forEach((i) => {
+              i['podkastCursor'] = i['id'].toString() == state.getState(ACTIVE_EPISODE);
               i['podkastTitle'] = i['title'].length >= 41 ? i['title'].slice(0, 38) + '...' : i['title'];
               i['podkastThumb'] = this.data.listThumb[i['id']] || '/icons/loading.gif';
               i['podkastBookmark'] = false;
@@ -810,6 +817,7 @@ window.addEventListener("load", () => {
                     episodes[id]['podkastThumb'] = this.data.listThumb[id] || '/icons/loading.gif';
                     episodes[id]['podkastTitle'] = episodes[id]['title'].length >= 41 ? episodes[id]['title'].slice(0, 38) + '...' : episodes[id]['title'];
                     episodes[id]['podkastBookmark'] = true;
+                    episodes[id]['podkastCursor'] = episodes[id]['id'].toString() == state.getState(ACTIVE_EPISODE);
                     temp.push(episodes[id]);
                   }
                   bookmarkSize--;
@@ -970,6 +978,8 @@ window.addEventListener("load", () => {
           processData: function(subscribedList) {
             // console.log('processData', TABLE_SUBSCRIBED, subscribedList);
             data.forEach((i) => {
+              const listen = MAIN_PLAYER.duration > 0 && !MAIN_PLAYER.paused && state.getState(ACTIVE_PODCAST).toString() == i['id'].toString();
+              i['podkastListening'] = listen;
               i['podkastTitle'] = i['title'].length >= 31 ? i['title'].slice(0, 28) + '...' : i['title'];
               i['podkastThumb'] = this.data.listThumb[i['id']] || '/icons/loading.gif';
               i['podkastSubscribe'] = false;
@@ -996,6 +1006,8 @@ window.addEventListener("load", () => {
               .then((podcast) => {
                 subscribedSize--;
                 if (podcast != null) {
+                  const listen = MAIN_PLAYER.duration > 0 && !MAIN_PLAYER.paused && state.getState(ACTIVE_PODCAST).toString() === podcast['id'].toString();
+                  podcast['podkastListening'] = listen;
                   podcast['podkastSubscribe'] = true;
                   podcast['podkastThumb'] = this.data.listThumb[podcast['id']] || '/icons/loading.gif';
                   podcast['podkastTitle'] = podcast['title'].length >= 31 ? podcast['title'].slice(0, 28) + '...' : podcast['title'];
