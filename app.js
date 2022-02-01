@@ -11,6 +11,7 @@ const TABLE_THUMBS = 'THUMBNAILS';
 const TABLE_APP_STATE = 'APP_STATE';
 const CATEGORIES = 'CATEGORIES';
 const AUTOPLAY = 'AUTOPLAY';
+const AUTOSLEEP = 'AUTOPLAY';
 const ACTIVE_PODCAST = 'ACTIVE_PODCAST';
 const ACTIVE_EPISODE = 'ACTIVE_EPISODE';
 
@@ -133,6 +134,7 @@ window.addEventListener("load", () => {
     [TABLE_SUBSCRIBED]: [],
     [TABLE_BOOKMARKED]: {},
     [AUTOPLAY]: localStorage.getItem(AUTOPLAY) || false,
+    [AUTOSLEEP]: localStorage.getItem(AUTOSLEEP) || false,
     [ACTIVE_PODCAST]: localStorage.getItem(ACTIVE_PODCAST) || false,
     [ACTIVE_EPISODE]: localStorage.getItem(ACTIVE_EPISODE) || false,
   });
