@@ -744,6 +744,7 @@ window.addEventListener("load", () => {
             });
             // $router.showToast(`Page ${this.data.pageCursor + 1}/${this.data.pages.length}`);
             this.methods.optimize();
+            this.methods.renderLeftKeyText();
           },
           listenState: function(updated) {
             // console.log('listenState', TABLE_BOOKMARKED, updated);
@@ -847,15 +848,17 @@ window.addEventListener("load", () => {
                 });
               }, randomIntFromInterval(5, 10) * 100);
             });
+          },
+          renderLeftKeyText: function() {
+            $router.setSoftKeyLeftText(`${this.data.pageCursor + 1}/${this.data.pages.length}`);
           }
         },
-        softKeyText: { left: 'Description', center: 'PLAY', right: 'More' },
+        softKeyText: { left: '', center: 'PLAY', right: 'More' },
         softKeyListener: {
           left: function() {
             if (this.data.list[this.verticalNavIndex] == null)
               return;
             // console.log(this.data.list[this.verticalNavIndex].description);
-            descriptionPage(this.$router, this.data.list[this.verticalNavIndex]);
           },
           center: function() {
             if (this.data.list[this.verticalNavIndex] == null)
@@ -882,15 +885,20 @@ window.addEventListener("load", () => {
             }
             if (this.data.list[this.verticalNavIndex]['podkastBookmark'])
               menu.push({ 'text': 'Remove From Favourite' });
-            this.$router.showOptionMenu(`More(Page ${this.data.pageCursor + 1}/${this.data.pages.length})`, menu, 'SELECT', (selected) => {
+            menu.push({ 'text': 'Description' });
+            this.$router.showOptionMenu('More', menu, 'SELECT', (selected) => {
               if (rightSoftKeyCallback[selected.text]) {
                 rightSoftKeyCallback[selected.text](JSON.parse(JSON.stringify(this.data.list[this.verticalNavIndex])));
               } else if (selected.text === 'Add To Favourite') {
                 addBookmark($router, JSON.parse(JSON.stringify(this.data.list[this.verticalNavIndex])));
               } else if (selected.text === 'Remove From Favourite') {
                 removeBookmark($router, JSON.parse(JSON.stringify(this.data.list[this.verticalNavIndex])));
+              } else if (selected.text === 'Description') {
+                descriptionPage(this.$router, this.data.list[this.verticalNavIndex]);
               }
-            }, () => {});
+            }, () => {
+              setTimeout(this.methods.renderLeftKeyText, 100);
+            });
           }
         },
         dPadNavListener: {
@@ -898,7 +906,7 @@ window.addEventListener("load", () => {
             if (this.data.pageCursor <= 0)
               return;
             else {
-              this.verticalNavIndex = -1;
+              this.verticalNavIndex = 19;
               this.methods.gotoPage(this.data.pageCursor - 1);
             }
           },

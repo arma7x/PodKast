@@ -8,7 +8,7 @@
       font-size: 11px;
       overflow: hidden;
       text-overflow: ellipsis;
-      font-family: Arial, Helvetica, freesans, sans-serif;
+      font-family: 'Open Sans', sans-serif;
       font-weight: bold;
     }
     .li-style {
@@ -59,14 +59,16 @@
         <div class="wrapper-info">
           <p id="title_{{ id }}" class="wrapper-info-child" style="font-family:'MS PGothic';font-size:14px;padding:0 0 3px 0;">{{ podkastTitle }}</p>
           {{#author}}
-          <p class="wrapper-info-child" style="font-weight:lighter;">{{ author }}</p>
+          <p class="wrapper-info-child" style="font-weight:lighter;padding:0 0 3px 0;">{{ author }}</p>
           {{/author}}
           {{#episodeCount}}
           <p style="font-weight:lighter;font-size:11px;position:absolute;margin-top:-1px;padding:2px;bottom:0;left:2px;">Episodes: {{episodeCount}}</p>
           {{/episodeCount}}
-          {{#podkastSubscribe}}
-          <span style="position:absolute;margin-top:-1px;padding:2px;bottom:0;right:0;">&#10070;</span>
-          {{/podkastSubscribe}}
+          <div style="position:absolute;margin-top:-1px;padding:2px;bottom:0;right:0;display-flex;flex-direction:row;">
+            {{#podkastSubscribe}}
+            <span>&#10070;</span>
+            {{/podkastSubscribe}}
+          </div>
         </div>
       </div>
     </li>

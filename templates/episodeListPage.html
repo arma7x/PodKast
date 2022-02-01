@@ -8,7 +8,7 @@
       font-size: 11px;
       overflow: hidden;
       text-overflow: ellipsis;
-      font-family: Arial, Helvetica, freesans, sans-serif;
+      font-family: font-family: 'Open Sans', sans-serif;
       font-weight: bold;
     }
     .li-style {
@@ -42,7 +42,7 @@
       position: relative;
     }
     .wrapper-info-child {
-      height: 29px;
+      height: 28px;
       width: 100%;
       white-space: pre-wrap!important;
       word-break: break-word!important;
@@ -62,9 +62,11 @@
           {{#episode}}
           <p style="position:absolute;margin:-1px 0 0 3px;padding:2px;bottom:0;left:0;font-weight:lighter;">Episode: {{ episode }}</p>
           {{/episode}}
-          {{#podkastBookmark}}
-          <span style="position:absolute;margin-top:-1px;padding:2px;bottom:0;right:0;">&#9733;</span>
-          {{/podkastBookmark}}
+          <div style="position:absolute;margin-top:-1px;padding:2px;bottom:0;right:0;display-flex;flex-direction:row;">
+            {{#podkastBookmark}}
+            <span>&#9733;</span>
+            {{/podkastBookmark}}
+          </div>
         </div>
       </div>
     </li>
