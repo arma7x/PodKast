@@ -173,7 +173,7 @@ window.addEventListener("load", () => {
     .then(() =>{
       $router.showToast(msg);
       if (msg === 'SUBSCRIBED') {
-        syncPodcast($router, podcast, false)
+        syncPodcast($router, podcast)
         .then((result) => {
           console.log(result);
         })
@@ -269,7 +269,7 @@ window.addEventListener("load", () => {
   }
   initCategories();
 
-  const syncPodcast = function($router, podcast, playable = true) {
+  const syncPodcast = function($router, podcast) {
     return new Promise((resolve, reject) => {
       id = podcast.id;
       $router.showLoading();
@@ -298,8 +298,8 @@ window.addEventListener("load", () => {
         return Promise.all([T_PODCASTS.setItem(id.toString(), tempPodcast), T_EPISODES.setItem(id.toString(), tempEpisodes)]);
       })
       .then((saved) => {
-        // console.log(saved[1][saved[0]['podkastCurrentEpisode']]);
-        // console.log(saved[1][saved[0]['podkastCurrentEpisode']]['podkastLastDuration']);
+        console.log(saved[1][saved[0]['podkastCurrentEpisode']]);
+        console.log(saved[1][saved[0]['podkastCurrentEpisode']]['podkastLastDuration']);
         const result = {
           podcast: saved[0],
           episodes: saved[1],
@@ -317,12 +317,12 @@ window.addEventListener("load", () => {
 
   // DRAFT:
   // 1.  [DONE]listenPodcast via Main Player
+  // 2.  [DONE]Play unsub podcast
   // 5.  [DONE]if APP_STATE, AUTOPLAY, ACTIVE_PODCAST, ACTIVE_EPISODE then playPodcast
   // 6.  [DONE]On enter, ACTIVE_PODCAST, ACTIVE_EPISODE, MAIN.src == '' then playPodcast
   // 7.  [DONE]Main Player responsive UI
   // 11. [DONE]Active Podcast & Active Episode indicator
   // 8.  [DONE]Settings[Auto Sleep, Autoplay]
-  // 2. Play unsub podcast
   // 3. MAIN & MINI Player update podkastLastDuration
   // 4. MAIN & MINI Player resume podkastLastDuration
   // 9. MAIN & MINI Player playbackrate, fast-forward/rewind
@@ -333,14 +333,11 @@ window.addEventListener("load", () => {
     delete podcast['podkastThumb'];
     delete podcast['podkastTitle'];
     delete podcast['podkastListening'];
-    // console.log(podcast);
     T_PODCASTS.getItem(podcast['id'].toString())
     .then((savedPodcast) => {
       if (savedPodcast != null) {
-        // console.log('FIND:', savedPodcast['podkastCurrentEpisode'].toString());
         T_EPISODES.getItem(podcast['id'].toString())
         .then((savedEpisodes) => {
-          // console.log('FOUND:', savedEpisodes[savedPodcast['podkastCurrentEpisode']]);
           setTimeout(() => {
             playPodcast($router, savedEpisodes[savedPodcast['podkastCurrentEpisode']], true);
           }, 1000);
@@ -350,19 +347,21 @@ window.addEventListener("load", () => {
           console.log(err);
         });
       } else {
-        // syncPodcast($router, podcast['id'].toString(), false)
+        syncPodcast($router, podcast)
+        .then((result) => {
+          setTimeout(() => {
+            playPodcast($router, result.episodes[result.podcast['podkastCurrentEpisode']], true);
+          }, 1000);
+          $router.pop();
+        })
+        .catch((err) => {
+          console.log(err);
+        });
       }
     })
     .catch((err) => {
       console.log(err);
     });
-    // if ID not in CACHE GOTO syncPodcast($router, id, true)
-    // else
-    // curEp = T_PODCASTS[ID][podkastCurrentEpisode]
-    // T_EPISODES[ID][curEp]
-    // - podkastLocalPath
-    // - podkastLastDuration
-    // MAIN_PLAYER
   }
 
   const playPodcast = function($router, episode, playable = true) {
@@ -1222,9 +1221,9 @@ window.addEventListener("load", () => {
                   });
                 }
               } else if (selected.text === 'Sync Podcast') {
-                syncPodcast(this.$router, this.data.list[this.verticalNavIndex], false)
+                syncPodcast(this.$router, this.data.list[this.verticalNavIndex])
                 .then((result) => {
-                  console.log(result);
+                  console.log(result.episodes[result.podcast['podkastCurrentEpisode']]);
                 })
                 .catch((err) => {
                   console.log(err);
@@ -1624,12 +1623,6 @@ window.addEventListener("load", () => {
           }
         }, () => {});
       }
-    },
-    softKeyInputFocusText: { left: '', center: '', right: '' },
-    softKeyInputFocusListener: {
-      left: function() {},
-      center: function() {},
-      right: function() {}
     },
     dPadNavListener: {
       arrowUp: function() {
