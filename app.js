@@ -870,12 +870,13 @@ window.addEventListener("load", () => {
             });
             T_PODCASTS.getItem(feedId.toString())
             .then((podcast) => {
+              const cursor = podcast != null ? podcast['podkastCurrentEpisode'] : false;
               const pages = [];
               const temp = JSON.parse(JSON.stringify(data));
               while (temp.length > 0) {
                 pages.push(temp.splice(0, 20));
-                if (this.data.init && ((episodeId != null && episodeId != false) || podcast['podkastCurrentEpisode'])) {
-                  const matchId = episodeId || podcast['podkastCurrentEpisode'];
+                if (this.data.init && ((episodeId != null && episodeId != false) || cursor)) {
+                  const matchId = episodeId || cursor;
                   pages[pages.length - 1].forEach((ep, idx) => {
                     if (ep['id'] === matchId) {
                       this.data.init = false;
