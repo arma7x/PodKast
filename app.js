@@ -314,7 +314,7 @@ window.addEventListener("load", () => {
   // 8. Settings[Auto Sleep, Autoplay]
   // 9. MAIN & MINI Player playbackrate, fast-forward/rewind
   // 10. Offline playback(downloader + episode downloaded indicator)
-  // 11. Active Podcast & Active Episode indicator
+  // 11. [DONE]Active Podcast & Active Episode indicator
   const listenPodcast = function($router, podcast) {
     delete podcast['podkastSubscribe'];
     delete podcast['podkastThumb'];
