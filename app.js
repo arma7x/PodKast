@@ -858,6 +858,8 @@ window.addEventListener("load", () => {
             });
           },
           renderLeftKeyText: function() {
+            if ($router.stack[$router.stack.length - 1].name !== this.name)
+              return;
             $router.setSoftKeyLeftText(`${this.data.pageCursor + 1}/${this.data.pages.length}`);
           }
         },
