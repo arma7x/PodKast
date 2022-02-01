@@ -1067,7 +1067,10 @@ window.addEventListener("load", () => {
             if (this.data.list[this.verticalNavIndex] == null)
               return;
             // console.log(this.data.list[this.verticalNavIndex]);
-            listenPodcast($router, JSON.parse(JSON.stringify(this.data.list[this.verticalNavIndex])));
+            const podcast = JSON.parse(JSON.stringify(this.data.list[this.verticalNavIndex]));
+            if (MAIN_PLAYER.duration > 0 && !MAIN_PLAYER.paused && state.getState(ACTIVE_PODCAST).toString() === podcast['id'].toString())
+              return;
+            listenPodcast($router, podcast);
           },
           right: function() {
             if (this.data.list[this.verticalNavIndex] == null)
