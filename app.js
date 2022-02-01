@@ -310,7 +310,7 @@ window.addEventListener("load", () => {
   // 4. MAIN & MINI Player resume podkastLastDuration
   // 5. [DONE]if APP_STATE, AUTOPLAY, ACTIVE_PODCAST, ACTIVE_EPISODE then playPodcast
   // 6. [DONE]On enter, ACTIVE_PODCAST, ACTIVE_EPISODE, MAIN.src == '' then playPodcast
-  // 7. Main Player responsive UI
+  // 7. [DONE]Main Player responsive UI
   // 8. Settings[Auto Sleep, Autoplay]
   // 9. MAIN & MINI Player playbackrate, fast-forward/rewind
   // 10. Offline playback(downloader + episode downloaded indicator)
