@@ -852,7 +852,9 @@ window.addEventListener("load", () => {
           },
           processData: function(bookmarkList) {
             // console.log('processData', TABLE_BOOKMARKED, bookmarkList);
+            var feedId = '000000000000000000000';
             data.forEach((i) => {
+              feedId = i['feedId'];
               i['podkastCursor'] = i['id'].toString() == state.getState(ACTIVE_EPISODE);
               i['podkastTitle'] = i['title'].length >= 41 ? i['title'].slice(0, 38) + '...' : i['title'];
               i['podkastThumb'] = this.data.listThumb[i['id']] || '/icons/loading.gif';
@@ -866,23 +868,27 @@ window.addEventListener("load", () => {
                   i['podkastBookmark'] = true;
               }
             });
-            const pages = [];
-            const temp = JSON.parse(JSON.stringify(data));
-            while (temp.length > 0) {
-              pages.push(temp.splice(0, 20));
-              if (this.data.init && episodeId != null && episodeId != false) {
-                pages[pages.length - 1].forEach((ep, idx) => {
-                  if (ep['id'] === episodeId) {
-                    this.data.init = false;
-                    this.data.pageCursor = pages.length - 1;
-                    this.verticalNavIndex = idx;
-                  }
-                });
+            T_PODCASTS.getItem(feedId.toString())
+            .then((podcast) => {
+              const pages = [];
+              const temp = JSON.parse(JSON.stringify(data));
+              while (temp.length > 0) {
+                pages.push(temp.splice(0, 20));
+                if (this.data.init && ((episodeId != null && episodeId != false) || podcast['podkastCurrentEpisode'])) {
+                  const matchId = episodeId || podcast['podkastCurrentEpisode'];
+                  pages[pages.length - 1].forEach((ep, idx) => {
+                    if (ep['id'] === matchId) {
+                      this.data.init = false;
+                      this.data.pageCursor = pages.length - 1;
+                      this.verticalNavIndex = idx;
+                    }
+                  });
+                }
               }
-            }
-            this.data.pages = pages;
-            this.methods.gotoPage(this.data.pageCursor);
-            //this.setData({ list: data });
+              this.data.pages = pages;
+              this.methods.gotoPage(this.data.pageCursor);
+              //this.setData({ list: data });
+            });
           },
           processDataNull: function(bookmarkList) {
             if (Object.keys(bookmarkList).length === 0) {
@@ -907,8 +913,7 @@ window.addEventListener("load", () => {
                     episodes[id]['podkastThumb'] = this.data.listThumb[id] || '/icons/loading.gif';
                     episodes[id]['podkastTitle'] = episodes[id]['title'].length >= 41 ? episodes[id]['title'].slice(0, 38) + '...' : episodes[id]['title'];
                     episodes[id]['podkastBookmark'] = true;
-                    episodes[id]['podkastCursor'] = episodes[id]['id'].toString() == state.getState(ACTIVE_EPISODE);
-                    temp.push(episodes[id]);
+                    episodes[id]['podkastCursor'] = false;
                   }
                   bookmarkSize--;
                   if (bookmarkSize <= 0) {
