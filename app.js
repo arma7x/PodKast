@@ -314,17 +314,17 @@ window.addEventListener("load", () => {
   }
 
   // DRAFT:
-  // 1. [DONE]listenPodcast via Main Player
-  // 2. play unsub podcast
+  // 1.  [DONE]listenPodcast via Main Player
+  // 5.  [DONE]if APP_STATE, AUTOPLAY, ACTIVE_PODCAST, ACTIVE_EPISODE then playPodcast
+  // 6.  [DONE]On enter, ACTIVE_PODCAST, ACTIVE_EPISODE, MAIN.src == '' then playPodcast
+  // 7.  [DONE]Main Player responsive UI
+  // 11. [DONE]Active Podcast & Active Episode indicator
+  // 2. Play unsub podcast
   // 3. MAIN & MINI Player update podkastLastDuration
   // 4. MAIN & MINI Player resume podkastLastDuration
-  // 5. [DONE]if APP_STATE, AUTOPLAY, ACTIVE_PODCAST, ACTIVE_EPISODE then playPodcast
-  // 6. [DONE]On enter, ACTIVE_PODCAST, ACTIVE_EPISODE, MAIN.src == '' then playPodcast
-  // 7. [DONE]Main Player responsive UI
   // 8. Settings[Auto Sleep, Autoplay]
   // 9. MAIN & MINI Player playbackrate, fast-forward/rewind
   // 10. Offline playback(downloader + episode downloaded indicator)
-  // 11. [DONE]Active Podcast & Active Episode indicator
   const listenPodcast = function($router, podcast) {
     delete podcast['podkastSubscribe'];
     delete podcast['podkastThumb'];
