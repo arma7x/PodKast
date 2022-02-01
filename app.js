@@ -11,7 +11,7 @@ const TABLE_THUMBS = 'THUMBNAILS';
 const TABLE_APP_STATE = 'APP_STATE';
 const CATEGORIES = 'CATEGORIES';
 const AUTOPLAY = 'AUTOPLAY';
-const AUTOSLEEP = 'AUTOPLAY';
+const AUTOSLEEP = 'AUTOSLEEP';
 const ACTIVE_PODCAST = 'ACTIVE_PODCAST';
 const ACTIVE_EPISODE = 'ACTIVE_EPISODE';
 
@@ -133,8 +133,8 @@ window.addEventListener("load", () => {
     [CATEGORIES]: [],
     [TABLE_SUBSCRIBED]: [],
     [TABLE_BOOKMARKED]: {},
-    [AUTOPLAY]: localStorage.getItem(AUTOPLAY) || false,
-    [AUTOSLEEP]: localStorage.getItem(AUTOSLEEP) || false,
+    [AUTOPLAY]: JSON.parse(localStorage.getItem(AUTOPLAY)) || false,
+    [AUTOSLEEP]: JSON.parse(localStorage.getItem(AUTOSLEEP)) || false,
     [ACTIVE_PODCAST]: localStorage.getItem(ACTIVE_PODCAST) || false,
     [ACTIVE_EPISODE]: localStorage.getItem(ACTIVE_EPISODE) || false,
   });
@@ -321,12 +321,13 @@ window.addEventListener("load", () => {
   // 6.  [DONE]On enter, ACTIVE_PODCAST, ACTIVE_EPISODE, MAIN.src == '' then playPodcast
   // 7.  [DONE]Main Player responsive UI
   // 11. [DONE]Active Podcast & Active Episode indicator
+  // 8.  [DONE]Settings[Auto Sleep, Autoplay]
   // 2. Play unsub podcast
   // 3. MAIN & MINI Player update podkastLastDuration
   // 4. MAIN & MINI Player resume podkastLastDuration
-  // 8. Settings[Auto Sleep, Autoplay]
   // 9. MAIN & MINI Player playbackrate, fast-forward/rewind
   // 10. Offline playback(downloader + episode downloaded indicator)
+  // 12. Sleep Timer
   const listenPodcast = function($router, podcast) {
     delete podcast['podkastSubscribe'];
     delete podcast['podkastThumb'];
@@ -595,6 +596,83 @@ window.addEventListener("load", () => {
         const listNav = document.querySelectorAll(this.verticalNavClass);
         if (this.verticalNavIndex === listNav.length - 1)
           return
+        this.navigateListNav(1);
+      }
+    }
+  });
+
+  const settingPage = new Kai({
+    name: 'setting',
+    data: {
+      title: 'setting',
+      autoplay: false,
+      autosleep: false,
+    },
+    verticalNavClass: '.settingNav',
+    templateUrl: document.location.origin + '/templates/setting.html',
+    mounted: function() {
+      this.$router.setHeaderTitle('Settings');
+      this.methods.listenState(this.$state.getState());
+      this.$state.addGlobalListener(this.methods.listenState);
+    },
+    unmounted: function() {
+      this.$state.removeGlobalListener(this.methods.listenState);
+    },
+    methods: {
+      listenState: function(data) {
+        const obj = {};
+        if (data[AUTOSLEEP] != null) {
+          obj['autosleep'] = JSON.parse(data[AUTOSLEEP]);
+        }
+        if (data[AUTOPLAY] != null) {
+          obj['autoplay'] = JSON.parse(data[AUTOPLAY]);
+        }
+        this.setData(obj);
+      },
+      changeAutoSleep: function() {
+        const choices = [
+          { 'text': 'Off', value: false },
+          { 'text': '1 Minutes(TEST)', value: 1 },
+          { 'text': '10 Minutes', value: 10 },
+          { 'text': '20 Minutes', value: 20 },
+          { 'text': '30 Minutes', value: 30 },
+          { 'text': '40 Minutes', value: 40 },
+          { 'text': '50 Minutes', value: 50 },
+          { 'text': '60 Minutes', value: 60 },
+        ]
+        const idx = choices.findIndex((opt) => {
+          return opt.value === this.data.autosleep;
+        });
+        this.$router.showOptionMenu('Sleep Timer', choices, 'SELECT', (selected) => {
+          const value = JSON.parse(selected.value);
+          localStorage.setItem(AUTOSLEEP, value);
+          this.$state.setState(AUTOSLEEP, JSON.parse(localStorage.getItem(AUTOSLEEP)));
+        }, () => {}, idx);
+      },
+      changeAutoPlay: function() {
+        const value = !this.data.autoplay;
+        localStorage.setItem(AUTOPLAY, value);
+        this.$state.setState(AUTOPLAY, JSON.parse(localStorage.getItem(AUTOPLAY)));
+      }
+    },
+    softKeyText: { left: '', center: 'SELECT', right: '' },
+    softKeyListener: {
+      left: function() {},
+      center: function() {
+        const listNav = document.querySelectorAll(this.verticalNavClass);
+        if (this.verticalNavIndex > -1) {
+          if (listNav[this.verticalNavIndex]) {
+            listNav[this.verticalNavIndex].click();
+          }
+        }
+      },
+      right: function() {}
+    },
+    dPadNavListener: {
+      arrowUp: function() {
+        this.navigateListNav(-1);
+      },
+      arrowDown: function() {
         this.navigateListNav(1);
       }
     }
@@ -1382,6 +1460,7 @@ window.addEventListener("load", () => {
           {'text': 'Recent Podcast'},
           {'text': 'Recent Podcast By Category'},
           {'text': 'Favorite Episodes'}, // CACHE
+          {'text': 'Settings'},
           {'text': 'Help & Support'},
           {'text': 'Changelogs'},
           {'text': 'Exit'},
@@ -1522,6 +1601,9 @@ window.addEventListener("load", () => {
                 }
               });
               break;
+            case 'Settings':
+              this.$router.push('settingPage');
+              break;
             case 'Help & Support':
               this.$router.push('helpSupport');
               break;
@@ -1563,6 +1645,10 @@ window.addEventListener("load", () => {
       'index' : {
         name: 'home',
         component: home
+      },
+      'settingPage': {
+        name: 'settingPage',
+        component: settingPage
       },
       'helpSupport' : {
         name: 'helpSupport',
