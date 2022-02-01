@@ -1190,18 +1190,21 @@ window.addEventListener("load", () => {
     },
     methods: {
       listenActivePodcast: function(podcastId) {
-        if (podcastId == null || podcastId == false)
+        const img = document.getElementById('main_thumb');
+        if (img == null)
           return;
+        if (podcastId == null || podcastId == false) {
+          img.src = '/icons/icon112x112.png';
+          return;
+        }
+        img.src = '/icons/loading.gif';
         T_PODCASTS.getItem(podcastId.toString())
         .then((podcast) => {
           if (podcast['image'] == null || podcast['image'] == '')
             podcast['image'] = '/icons/icon112x112.png';
           getThumb(podcast['image'])
           .then((url) => {
-            const img = document.getElementById('main_thumb');
-            if (img != null) {
-              img.src = url;
-            }
+            img.src = url;
           })
           .catch((err) => {
             console.log(err);
@@ -1209,13 +1212,17 @@ window.addEventListener("load", () => {
         });
       },
       listenActiveEpisode: function(episodeId) {
-        if (episodeId == null || episodeId == false)
+        const title = document.getElementById('main_title');
+        if (title == null)
           return;
-        console.log('listenActiveEpisode');
+        if (episodeId == null || episodeId == false) {
+          title.textContent = 'PodKast';
+          return;
+        }
         T_EPISODES.getItem(this.$state.getState(ACTIVE_PODCAST).toString())
         .then((episodes) => {
           if (episodes != null) {
-            document.getElementById('main_title').textContent = episodes[this.$state.getState(ACTIVE_EPISODE)].title
+            title.textContent = episodes[this.$state.getState(ACTIVE_EPISODE)].title
           }
         });
       },
