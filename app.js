@@ -170,8 +170,15 @@ window.addEventListener("load", () => {
     })
     .then(() =>{
       $router.showToast(msg);
-      if (msg === 'SUBSCRIBED')
-        syncPodcast($router, podcast, false);
+      if (msg === 'SUBSCRIBED') {
+        syncPodcast($router, podcast, false)
+        .then((result) => {
+          console.log(result);
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+      }
       initTableSubscribed();
     })
     .catch((err) =>{
@@ -261,45 +268,48 @@ window.addEventListener("load", () => {
   initCategories();
 
   const syncPodcast = function($router, podcast, playable = true) {
-    id = podcast.id
-    $router.showLoading();
-    Promise.all([podcastIndex.getFeed(id), T_PODCASTS.getItem(id.toString()), extractPodcastEpisodesFromRSS($router, podcast), T_EPISODES.getItem(id.toString())])
-    .then((results) => {
-      var tempPodcast = results[1];
-      if (tempPodcast == null) {
-        console.log('Podcast !Cached:', id);
-        tempPodcast = {};
-        tempPodcast['podkastCurrentEpisode'] = results[2][results[2].length - 1]['id'];
-      }
-      tempPodcast = Object.assign(tempPodcast, results[0].response.feed);
-      var tempEpisodes = results[3];
-      if (tempEpisodes == null) {
-        tempEpisodes = {};
-      }
-      results[2].forEach((episode) => {
-        if (tempEpisodes[episode['id']] == null) { // !CACHE
-          console.log('Podcast Ep !Cached:', id, episode['id']);
-          tempEpisodes[episode['id']] = {};
-          tempEpisodes[episode['id']]['podkastLocalPath'] = false;
-          tempEpisodes[episode['id']]['podkastLastDuration'] = 0;
+    return new Promise((resolve, reject) => {
+      id = podcast.id;
+      $router.showLoading();
+      Promise.all([podcastIndex.getFeed(id), T_PODCASTS.getItem(id.toString()), extractPodcastEpisodesFromRSS($router, podcast), T_EPISODES.getItem(id.toString())])
+      .then((results) => {
+        var tempPodcast = results[1];
+        if (tempPodcast == null) {
+          console.log('Podcast !Cached:', id);
+          tempPodcast = {};
+          tempPodcast['podkastCurrentEpisode'] = results[2][results[2].length - 1]['id'];
         }
-        tempEpisodes[episode['id']] = Object.assign(tempEpisodes[episode['id']], episode);
+        tempPodcast = Object.assign(tempPodcast, results[0].response.feed);
+        var tempEpisodes = results[3];
+        if (tempEpisodes == null) {
+          tempEpisodes = {};
+        }
+        results[2].forEach((episode) => {
+          if (tempEpisodes[episode['id']] == null) { // !CACHE
+            console.log('Podcast Ep !Cached:', id, episode['id']);
+            tempEpisodes[episode['id']] = {};
+            tempEpisodes[episode['id']]['podkastLocalPath'] = false;
+            tempEpisodes[episode['id']]['podkastLastDuration'] = 0;
+          }
+          tempEpisodes[episode['id']] = Object.assign(tempEpisodes[episode['id']], episode);
+        });
+        return Promise.all([T_PODCASTS.setItem(id.toString(), tempPodcast), T_EPISODES.setItem(id.toString(), tempEpisodes)]);
+      })
+      .then((saved) => {
+        // console.log(saved[1][saved[0]['podkastCurrentEpisode']]);
+        // console.log(saved[1][saved[0]['podkastCurrentEpisode']]['podkastLastDuration']);
+        const result = {
+          podcast: saved[0],
+          episodes: saved[1],
+        }
+        resolve(result);
+      })
+      .catch((err) => {
+        reject(err);
+      })
+      .finally(() => {
+        $router.hideLoading();
       });
-      return Promise.all([T_PODCASTS.setItem(id.toString(), tempPodcast), T_EPISODES.setItem(id.toString(), tempEpisodes)]);
-    })
-    .then((saved) => {
-      console.log(saved);
-      console.log(saved[1][saved[0]['podkastCurrentEpisode']]);
-      console.log(saved[1][saved[0]['podkastCurrentEpisode']]['podkastLastDuration']);
-      // MAIN_PLAYER
-    })
-    .catch((err) => {
-      console.log(err);
-      // Only delete if podcast['podkastCurrentEpisode'] === null
-      // T_PODCASTS.removeItem(id.toString());
-    })
-    .finally(() => {
-      $router.hideLoading();
     });
   }
 
@@ -1124,7 +1134,13 @@ window.addEventListener("load", () => {
                   });
                 }
               } else if (selected.text === 'Sync Podcast') {
-                syncPodcast(this.$router, this.data.list[this.verticalNavIndex], false);
+                syncPodcast(this.$router, this.data.list[this.verticalNavIndex], false)
+                .then((result) => {
+                  console.log(result);
+                })
+                .catch((err) => {
+                  console.log(err);
+                });
               }
             }, () => {});
           }
