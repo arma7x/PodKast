@@ -969,6 +969,8 @@ window.addEventListener("load", () => {
           center: function() {
             if (this.data.list[this.verticalNavIndex] == null)
               return;
+            if (MAIN_PLAYER.duration > 0 && !MAIN_PLAYER.paused && state.getState(ACTIVE_EPISODE).toString() === this.data.list[this.verticalNavIndex]['id'].toString())
+              return;
             if (episodeId != null && episodeId != false) {
               setTimeout(() => {
                 playPodcast($router, JSON.parse(JSON.stringify(this.data.list[this.verticalNavIndex])));
