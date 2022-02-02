@@ -79,33 +79,65 @@ const DataStorage = (function() {
   }
 
   function getFile(name, success, error, getEditable) {
-    var request;
-    if (getEditable === true) {
-      request = getSDCard(getStorageNameByPath(name)).getEditable(name);
-    } else {
-      request = getSDCard(getStorageNameByPath(name)).get(name);
-    }
-    request.onsuccess = function () {
-      if (success !== undefined) {
-        success(this.result);
+    return new Promise((resolve, reject) => {
+      var request;
+      if (getEditable === true) {
+        request = getSDCard(getStorageNameByPath(name)).getEditable(name);
+      } else {
+        request = getSDCard(getStorageNameByPath(name)).get(name);
       }
-    }
-    request.onerror = function () {
-      if (error !== undefined) {
-        error(this.error);
+      request.onsuccess = function () {
+        resolve(this.result);
+        if (success !== undefined) {
+          success(this.result);
+        }
       }
-    }
+      request.onerror = function () {
+        reject(this.result);
+        if (error !== undefined) {
+          error(this.error);
+        }
+      }
+    });
   }
 
-  function getChild(segments, tree, parent, root) {
-    if (segments.length === 1) {
-      tree[parent] = root
+  function removeNode(target, path, steps = []) {
+    var dir = path.splice(0, 1);
+    dir = dir[0];
+    if (target[dir] == null) {
+      return false;
+    }
+    if (path.length === 0 && Object.keys(target[dir]).length === 0) {
+      delete target[dir];
+      return steps;
+    }
+    steps.push(dir);
+    return removeNode(target[dir], path, steps);
+  }
+
+  function removeChild(target, path, steps = []) {
+    var dir = path.splice(0, 1);
+    dir = dir[0];
+    if (target[dir] == null) {
+      return false;
+    }
+    if (typeof target[dir] !== 'object') {
+      delete target[dir];
+      return steps;
+    }
+    steps.push(dir);
+    return removeChild(target[dir], path, steps);
+  }
+
+  function insertChild(path, tree, parent, root) {
+    if (path.length === 1) {
+      tree[parent] = root;
       return tree;
     } else {
       if (tree[parent] === undefined) {
-        tree[parent] = {}
+        tree[parent] = {};
       }
-      tree[parent] = getChild(segments.slice(1, segments.length), tree[parent], segments.slice(1, segments.length)[0], root)
+      tree[parent] = insertChild(path.slice(1, path.length), tree[parent], path.slice(1, path.length)[0], root);
       return tree;
     }
   }
@@ -117,8 +149,7 @@ const DataStorage = (function() {
         element = element.replace('/', '');
         _this.trailingSlash = '/';
       }
-      var folder = element.split('/')[0] === '' ? 'root' : element.split('/')[0];
-      docTree = getChild(element.split('/'), docTree, folder, element);
+      docTree = insertChild(element.split('/'), docTree, element.split('/')[0], element);
     })
     return docTree;
   }
@@ -173,10 +204,76 @@ const DataStorage = (function() {
     this.groups = {};
     this.indexingStorage();
     this.onChangeListener = (event) => {
-      // event.type  = change
-      // event.reason = created | deleted | modified
-      console.log(event);
-      this.indexingStorage();
+      console.log(event.type, event.reason, event.path);
+      const fp = event.path;
+      if (event.type === 'change' && event.reason === 'created') {
+        this.onReady(false);
+        getFile(fp)
+        .then((file) => {
+          if (file != null) {
+            this.fileAttributeRegistry[file.name] = { type: file.type, size: file.size, lastModified: file.lastModified };
+            this.fileRegistry.push(file.name);
+            var filePath = file.name;
+            if (filePath[0] === '/')
+              filePath = filePath.replace('/', '');
+            this.documentTree = insertChild(filePath.split('/'), this.documentTree, filePath.split('/')[0], filePath);
+            if (file.type === '') {
+              if (this.groups['unknown'] == null) {
+                this.groups['unknown'] = [];
+              }
+              this.groups['unknown'].push(file.name);
+            } else {
+              const t = file.type.split('/')[0];
+              if (this.groups[t] == null) {
+                this.groups[t] = [];
+              }
+              this.groups[t].push(file.name);
+            }
+            this.onChange(this.fileRegistry, this.documentTree, this.groups);
+            this.onReady(true);
+          } else {
+            this.onReady(true);
+          }
+        })
+        .catch((err) => {
+          this.onReady(true);
+        });
+      } else if (event.type === 'change' && event.reason === 'modified') {
+        this.onReady(false);
+        getFile(fp)
+        .then((file) => {
+          if (file != null) {
+            this.fileAttributeRegistry[file.name] = { type: file.type, size: file.size, lastModified: file.lastModified };
+            this.onChange(this.fileRegistry, this.documentTree, this.groups);
+            this.onReady(true);
+          } else {
+            this.onReady(true);
+          }
+        })
+        .catch((err) => {
+          this.onReady(true);
+        });
+      } else if (event.type === 'change' && event.reason === 'deleted') {
+        this.onReady(false);
+        const attrb = this.fileAttributeRegistry[fp];
+        delete this.fileAttributeRegistry[fp];
+        this.fileRegistry.splice(this.fileRegistry.indexOf(fp), 1);
+        var path = removeChild(this.documentTree, fp.split('/'));
+        if (path !== false) {
+          path = removeNode(this.documentTree, path);
+          while (path !== false) {
+            path = removeNode(this.documentTree, path);
+          }
+        }
+        if (attrb.type === '') {
+          this.groups['unknown'].splice(this.groups['unknown'].indexOf(fp), 1);
+        } else {
+          const t = attrb.type.split('/')[0];
+          this.groups[t].splice(this.groups[t].indexOf(fp), 1);
+        }
+        this.onChange(this.fileRegistry, this.documentTree, this.groups);
+        this.onReady(true);
+      }
     }
     SDCARDS.forEach((c) => {
       c.addEventListener("change", this.onChangeListener);
@@ -224,7 +321,7 @@ const DataStorage = (function() {
   DataStorage.prototype.getFile = function(name, success, error, getEditable) {
     if (name[0] != this.trailingSlash)
       name = this.trailingSlash + name
-    getFile(name, success, error, getEditable);
+    return getFile(name, success, error, getEditable);
   }
 
   DataStorage.prototype.addFile = function(path, name, blob) {
