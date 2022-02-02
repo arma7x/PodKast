@@ -204,7 +204,7 @@ const DataStorage = (function() {
     this.groups = {};
     this.indexingStorage();
     this.onChangeListener = (event) => {
-      console.log(event.type, event.reason, event.path);
+      // console.log(event.type, event.reason, event.path);
       const fp = event.path;
       if (event.type === 'change' && event.reason === 'created') {
         this.onReady(false);
