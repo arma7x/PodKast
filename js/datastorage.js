@@ -205,6 +205,8 @@ const DataStorage = (function() {
     this.indexingStorage();
     this.onChangeListener = (event) => {
       // console.log(event.type, event.reason, event.path);
+      if (!this.indexing)
+        return;
       const fp = event.path;
       if (event.type === 'change' && event.reason === 'created') {
         this.onReady(false);
