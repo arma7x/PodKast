@@ -69,6 +69,12 @@
             {{#podkastBookmark}}
             <span class="kai-icon-favorite-on" style="font-size:12px;"></span>
             {{/podkastBookmark}}
+            {{#podkastLocalPath}}
+            <span class="kai-icon-download" style="font-size:12px;"></span>
+            {{/podkastLocalPath}}
+            {{^podkastLocalPath}}
+            <span class="kai-icon-wifi" style="font-size:12px;"></span>
+            {{/podkastLocalPath}}
           </div>
         </div>
       </div>

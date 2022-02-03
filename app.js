@@ -690,6 +690,42 @@ window.addEventListener("load", () => {
     );
   }
 
+  const downloaderPopup = function($router, episode, cb = () => {}) {
+    $router.showBottomSheet(
+      new Kai({
+        name: 'downloaderPopup',
+        data: {
+          title: 'downloaderPopup',
+          episode: episode,
+          downloading: false,
+        },
+        templateUrl: document.location.origin + '/templates/downloaderPopup.html',
+        softKeyText: { left: 'Cancel', center: '', right: '' },
+        softKeyListener: {
+          left: function() {
+            $router.hideBottomSheet();
+          },
+          center: function() {},
+          right: function() {}
+        },
+        mounted: function() {
+        },
+        unmounted: function() {
+        },
+        methods: {},
+        dPadNavListener: {
+          arrowUp: function() {},
+          arrowRight: function() {},
+          arrowDown: function() {},
+          arrowLeft: function() {},
+        },
+        backKeyListener: function(evt) {
+          return -1;
+        }
+      })
+    );
+  }
+
   const miniPlayer = function($router, episode) {
     // feedTitle title enclosureUrl
     // console.log(episode);
@@ -941,6 +977,25 @@ window.addEventListener("load", () => {
               }, randomIntFromInterval(5, 10) * 100);
             });
           },
+          downloadAudio: function(episode) {
+            downloaderPopup($router, episode);
+            for (var x in this.data.pages[this.data.pageCursor]) {
+              if (this.data.pages[this.data.pageCursor][x]['id'] === episode['id']) {
+                this.data.pages[this.data.pageCursor][x]['podkastLocalPath'] = true;
+                this.methods.gotoPage(this.data.pageCursor);
+                break;
+              }
+            }
+          },
+          deleteAudio: function(episode) {
+            for (var x in this.data.pages[this.data.pageCursor]) {
+              if (this.data.pages[this.data.pageCursor][x]['id'] === episode['id']) {
+                this.data.pages[this.data.pageCursor][x]['podkastLocalPath'] = false;
+                this.methods.gotoPage(this.data.pageCursor);
+                break;
+              }
+            }
+          },
           renderLeftKeyText: function() {
             if ($router.stack[$router.stack.length - 1].name !== this.name)
               return;
@@ -982,6 +1037,10 @@ window.addEventListener("load", () => {
             if (this.data.list[this.verticalNavIndex]['podkastBookmark'])
               menu.push({ 'text': 'Remove From Favourite' });
             menu.push({ 'text': 'Description' });
+            if (this.data.list[this.verticalNavIndex]['podkastLocalPath'] !== false)
+              menu.push({ 'text': 'Delete Audio' });
+            else
+              menu.push({ 'text': 'Download Audio' });
             this.$router.showOptionMenu('More', menu, 'SELECT', (selected) => {
               if (rightSoftKeyCallback[selected.text]) {
                 rightSoftKeyCallback[selected.text](JSON.parse(JSON.stringify(this.data.list[this.verticalNavIndex])));
@@ -991,6 +1050,10 @@ window.addEventListener("load", () => {
                 removeBookmark($router, JSON.parse(JSON.stringify(this.data.list[this.verticalNavIndex])));
               } else if (selected.text === 'Description') {
                 descriptionPage(this.$router, this.data.list[this.verticalNavIndex]);
+              } else if (selected.text === 'Delete Audio') {
+                this.methods.deleteAudio(this.data.list[this.verticalNavIndex]);
+              } else if (selected.text === 'Download Audio') {
+                this.methods.downloadAudio(this.data.list[this.verticalNavIndex]);
               }
             }, () => {
               setTimeout(this.methods.renderLeftKeyText, 100);
@@ -1180,11 +1243,7 @@ window.addEventListener("load", () => {
                         temp.push(episodes[x]);
                       }
                       temp.sort((a, b) => b.date - a.date);
-                      episodeListPage($router, this.data.list[this.verticalNavIndex].title, temp, {
-                        'Download': function(episode) {
-                          console.log(selected.text, 'Download', episode);
-                        }
-                      });
+                      episodeListPage($router, this.data.list[this.verticalNavIndex].title, temp, {});
                     } else {
                       $router.showToast('Required SYNC');
                     }
@@ -1196,11 +1255,7 @@ window.addEventListener("load", () => {
                   $router.showLoading();
                   extractPodcastEpisodesFromRSS($router, this.data.list[this.verticalNavIndex])
                   .then((result) => {
-                    episodeListPage($router, this.data.list[this.verticalNavIndex].title, result, {
-                      'Download': function(episode) {
-                        console.log(selected.text, 'Download', episode);
-                      }
-                    });
+                    episodeListPage($router, this.data.list[this.verticalNavIndex].title, result, {});
                   })
                   .catch((err) => {
                     console.log(err);
@@ -1431,11 +1486,7 @@ window.addEventListener("load", () => {
               temp.push(episodes[x]);
             }
             temp.sort((a, b) => b.date - a.date);
-            episodeListPage(this.$router, 'Main Player', temp, {
-              'Download': function(episode) {
-                console.log(selected.text, 'Download', episode);
-              }
-            }, this.$state.getState(ACTIVE_EPISODE));
+            episodeListPage(this.$router, 'Main Player', temp, {}, this.$state.getState(ACTIVE_EPISODE));
           }
         });
       },
@@ -1597,9 +1648,6 @@ window.addEventListener("load", () => {
                     this.$router.hideLoading();
                   });
                 },
-                'Download': function(episode) {
-                  console.log(selected.text, 'Download', episode);
-                }
               });
               break;
             case 'Settings':
