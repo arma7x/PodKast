@@ -740,7 +740,7 @@ window.addEventListener("load", () => {
           start = new Date().getTime();
           req.send();
           setTimeout(() => {
-            //req.abort();
+            req.abort();
           }, 10000);
         },
         unmounted: function() {
