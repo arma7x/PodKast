@@ -721,7 +721,7 @@ window.addEventListener("load", () => {
           downloading: false,
         },
         templateUrl: document.location.origin + '/templates/downloaderPopup.html',
-        softKeyText: { left: 'Cancel', center: '', right: '' },
+        softKeyText: { left: 'Cancel', center: '0KB/S', right: '0%' },
         softKeyListener: {
           left: function() {
             $router.hideBottomSheet();
