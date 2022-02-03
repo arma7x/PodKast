@@ -24,6 +24,7 @@
     .wrapper-thumb {
       width: 59px;
       padding-top: 5px;
+      position: relative;
     }
     .wrapper-thumb-img {
       object-fit: cover;
@@ -54,8 +55,11 @@
     {{#list}}
     <li class="ePageNav kui-divider li-style">
       <div class="wrapper">
-        <div class="wrapper-thumb">
+        <div class="wrapper-thumb" sty>
           <img id="thumb_{{ feedId }}_{{ id }}" src="{{ podkastThumb }}" class="wrapper-thumb-img" width="59px" height="59px"/>
+          {{#podkastCursor}}
+          <span style="background: rgba(0,0,0,0.5);border-radius: 5px;position:absolute;top:5px;left:0;width:59px;height:59px;display:flex;flex-direction:column;justify-content:center;align-items:center;"><img width="30px" height="30px" src="/icons/play_white.png"/></span>
+          {{/podkastCursor}}
         </div>
         <div class="wrapper-info">
           <p id="title_{{ feedId }}_{{ id }}" class="wrapper-info-child" style="font-family:'MS PGothic';font-size:13px;padding:0 0 3px 0;">{{ podkastTitle }}</p>
