@@ -450,7 +450,7 @@ window.addEventListener("load", () => {
 
   const extractPodcastEpisodesFromRSS = function($router, podcast) {
     return new Promise((resolve, reject) => {
-      requireProxy(podcast.url || podcast.originalUrl)
+      verifyDomainSSL(podcast.url || podcast.originalUrl)
       .then((url) => {
         getRSSFromServer(url, {}, {'content-type': podcast.contentType}, podcast)
         .then((episodes) => {

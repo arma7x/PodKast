@@ -76,7 +76,7 @@ const resizeImage = function(url) {
   });
 }
 
-const requireProxy = function(url) {
+const verifyDomainSSL = function(url) {
   const u = new URL(url);
   if (u.protocol === 'http:')
     return Promise.resolve(url);
