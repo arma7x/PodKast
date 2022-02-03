@@ -77,8 +77,11 @@ const resizeImage = function(url) {
 }
 
 const requireProxy = function(url) {
+  const u = new URL(url);
+  if (u.protocol === 'http:')
+    return Promise.resolve(url);
   return new Promise((resolve, reject) => {
-    const conn = navigator.mozTCPSocket.open(new URL(url).host, 443, {useSecureTransport:true});
+    const conn = navigator.mozTCPSocket.open(u.host, 443, {useSecureTransport:true});
     conn.onopen = () => {
       conn.onerror = () => {};
       conn.close();
