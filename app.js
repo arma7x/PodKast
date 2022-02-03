@@ -367,7 +367,7 @@ window.addEventListener("load", () => {
     MAIN_PLAYER.play();
   }
 
-  const playEpisode = function($router, episode, playable = true) {
+  const playEpisode = function($router, episode, playable = true, cb = () => {}) {
     delete episode['podkastTitle'];
     delete episode['podkastThumb'];
     delete episode['podkastBookmark'];
@@ -389,11 +389,11 @@ window.addEventListener("load", () => {
       episodesObj[episode['id']] = tempEpisode;
       T_EPISODES.setItem(episode['feedId'].toString(), episodesObj);
       if (playable)
-        miniPlayer(router, episodesObj[episode['id']]);
+        miniPlayer(router, episodesObj[episode['id']], cb);
       return Promise.resolve(episodesObj[episode['id']]);
     })
     .catch((err) => {
-      miniPlayer(router, episode);
+      miniPlayer(router, episode, cb);
       return Promise.reject(err);
     });
   }
@@ -726,7 +726,7 @@ window.addEventListener("load", () => {
     );
   }
 
-  const miniPlayer = function($router, episode) {
+  const miniPlayer = function($router, episode, cb = () => {}) {
     // feedTitle title enclosureUrl
     // console.log(episode);
     var DURATION_SLIDER, CURRENT_TIME, DURATION;
@@ -788,6 +788,10 @@ window.addEventListener("load", () => {
           MINI_PLAYER.src = '';
           MINI_PLAYER.pause();
           MINI_PLAYER.currentTime = 0;
+          setTimeout(() => {
+            cb();
+            state.setState(TABLE_BOOKMARKED, state.getState(TABLE_BOOKMARKED));
+          }, 100);
         },
         methods: {
           onloadedmetadata: function(evt) {
@@ -879,7 +883,7 @@ window.addEventListener("load", () => {
             var feedId = '000000000000000000000';
             data.forEach((i) => {
               feedId = i['feedId'];
-              i['podkastCursor'] = i['id'].toString() == state.getState(ACTIVE_EPISODE);
+              i['podkastCursor'] = MAIN_PLAYER.duration > 0 && !MAIN_PLAYER.paused && i['id'].toString() == state.getState(ACTIVE_EPISODE);
               i['podkastTitle'] = i['title'].length >= 41 ? i['title'].slice(0, 38) + '...' : i['title'];
               i['podkastThumb'] = this.data.listThumb[i['id']] || '/icons/loading.gif';
               i['podkastBookmark'] = false;
@@ -1021,7 +1025,7 @@ window.addEventListener("load", () => {
               }, 1000);
               $router.pop();
             } else {
-              playEpisode($router, JSON.parse(JSON.stringify(this.data.list[this.verticalNavIndex])));
+              playEpisode($router, JSON.parse(JSON.stringify(this.data.list[this.verticalNavIndex])), true, this.methods.renderLeftKeyText);
             }
           },
           right: function() {
