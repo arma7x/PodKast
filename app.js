@@ -957,7 +957,7 @@ window.addEventListener("load", () => {
                     episodes[id]['podkastThumb'] = this.data.listThumb[id] || '/icons/loading.gif';
                     episodes[id]['podkastTitle'] = episodes[id]['title'].length >= 41 ? episodes[id]['title'].slice(0, 38) + '...' : episodes[id]['title'];
                     episodes[id]['podkastBookmark'] = true;
-                    episodes[id]['podkastPlaying'] = false;
+                    episodes[id]['podkastPlaying'] = MAIN_PLAYER.duration > 0 && !MAIN_PLAYER.paused && episodes[id]['id'].toString() == state.getState(ACTIVE_EPISODE);;
                     episodes[id]['podkastCursor'] = false;
                     temp.push(episodes[id]);
                   }
