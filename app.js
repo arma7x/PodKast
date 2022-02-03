@@ -759,7 +759,7 @@ window.addEventListener("load", () => {
               // console.log(`${readableFileSize(evt.loaded, true, 2)}/${readableFileSize(evt.total, true, 2)}, ${frag}, ${elapsed}ms, ${readableFileSize(speed, true)}S, ${percentComplete.toFixed(2)}%`);
               BAR.style.width = `${percentComplete.toFixed(2)}%`;
               CUR.innerHTML = `${readableFileSize(evt.loaded, true, 2)}`;
-              $router.setSoftKeyCenterText(`${readableFileSize(speed, true)}/s`);
+              $router.setSoftKeyCenterText(`${readableFileSize(Math.round(speed), true)}/s`);
               $router.setSoftKeyRightText(BAR.style.width);
               MAX.innerHTML = `${readableFileSize(evt.total, true, 2)}`;
             }
