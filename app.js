@@ -210,6 +210,7 @@ window.addEventListener("load", () => {
     delete episode['podkastThumb'];
     delete episode['podkastBookmark'];
     delete episode['podkastPlaying'];
+    delete episode['podkastCursor'];
     playEpisode($router, episode, false)
     .then(() => {
       return T_BOOKMARKED.getItem(episode['feedId'].toString());
@@ -382,6 +383,7 @@ window.addEventListener("load", () => {
     delete episode['podkastThumb'];
     delete episode['podkastBookmark'];
     delete episode['podkastPlaying'];
+    delete episode['podkastCursor'];
     console.log(episode);
     return T_EPISODES.getItem(episode['feedId'].toString())
     .then((episodesObj) => {
@@ -893,6 +895,7 @@ window.addEventListener("load", () => {
             var feedId = '000000000000000000000';
             data.forEach((i) => {
               feedId = i['feedId'];
+              i['podkastCursor'] = false;
               i['podkastPlaying'] = MAIN_PLAYER.duration > 0 && !MAIN_PLAYER.paused && i['id'].toString() == state.getState(ACTIVE_EPISODE);
               i['podkastTitle'] = i['title'].length >= 41 ? i['title'].slice(0, 38) + '...' : i['title'];
               i['podkastThumb'] = this.data.listThumb[i['id']] || '/icons/loading.gif';
@@ -917,6 +920,7 @@ window.addEventListener("load", () => {
                   const matchId = episodeId || cursor;
                   pages[pages.length - 1].forEach((ep, idx) => {
                     if (ep['id'] === matchId) {
+                      ep['podkastCursor'] = true;
                       this.data.init = false;
                       this.data.pageCursor = pages.length - 1;
                       this.verticalNavIndex = idx;
@@ -924,6 +928,7 @@ window.addEventListener("load", () => {
                   });
                 }
               }
+              console.log(pages);
               this.data.pages = pages;
               this.methods.gotoPage(this.data.pageCursor);
               //this.setData({ list: data });
@@ -953,6 +958,7 @@ window.addEventListener("load", () => {
                     episodes[id]['podkastTitle'] = episodes[id]['title'].length >= 41 ? episodes[id]['title'].slice(0, 38) + '...' : episodes[id]['title'];
                     episodes[id]['podkastBookmark'] = true;
                     episodes[id]['podkastPlaying'] = false;
+                    episodes[id]['podkastCursor'] = false;
                     temp.push(episodes[id]);
                   }
                   bookmarkSize--;
