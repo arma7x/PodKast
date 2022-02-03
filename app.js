@@ -300,8 +300,6 @@ window.addEventListener("load", () => {
         return Promise.all([T_PODCASTS.setItem(id.toString(), tempPodcast), T_EPISODES.setItem(id.toString(), tempEpisodes)]);
       })
       .then((saved) => {
-        console.log(saved[1][saved[0]['podkastCurrentEpisode']]);
-        console.log(saved[1][saved[0]['podkastCurrentEpisode']]['podkastLastDuration']);
         const result = {
           podcast: saved[0],
           episodes: saved[1],
@@ -359,8 +357,8 @@ window.addEventListener("load", () => {
     localStorage.setItem(ACTIVE_PODCAST, episode['feedId']);
     state.setState(ACTIVE_EPISODE, episode['id']);
     localStorage.setItem(ACTIVE_EPISODE, episode['id']);
-    console.log(state.getState(ACTIVE_PODCAST), localStorage.getItem(ACTIVE_PODCAST));
-    console.log(state.getState(ACTIVE_EPISODE), localStorage.getItem(ACTIVE_EPISODE));
+    // console.log(state.getState(ACTIVE_PODCAST), localStorage.getItem(ACTIVE_PODCAST));
+    // console.log(state.getState(ACTIVE_EPISODE), localStorage.getItem(ACTIVE_EPISODE));
     // console.log(state.getState(ACTIVE_PODCAST), state.getState(ACTIVE_EPISODE), episode, playable);
     MINI_PLAYER.src = '';
     MINI_PLAYER.pause();
