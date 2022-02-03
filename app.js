@@ -705,6 +705,13 @@ window.addEventListener("load", () => {
   }
 
   const downloaderPopup = function($router, episode, cb = () => {}) {
+    var BAR, CUR, MAX;
+    var start = 0;
+    var loaded = 0;
+    var req = new XMLHttpRequest({ mozSystem: true });
+    req.open('GET', episode['enclosureUrl'], true);
+    req.responseType = 'moz-blob';
+
     $router.showBottomSheet(
       new Kai({
         name: 'downloaderPopup',
@@ -718,16 +725,59 @@ window.addEventListener("load", () => {
         softKeyListener: {
           left: function() {
             $router.hideBottomSheet();
+            req.abort();
           },
           center: function() {},
           right: function() {}
         },
         mounted: function() {
+          BAR = document.getElementById('download_bar');
+          CUR = document.getElementById('download_cur');
+          MAX = document.getElementById('download_max');
+          req.onprogress = this.methods.onprogress;
+          req.onreadystatechange = this.methods.onreadystatechange;
+          req.onerror = this.methods.onerror;
+          start = new Date().getTime();
+          req.send();
+          setTimeout(() => {
+            //req.abort();
+          }, 10000);
         },
         unmounted: function() {
           setTimeout(cb, 100);
         },
-        methods: {},
+        methods: {
+          onprogress: function(evt) {
+            if (evt.lengthComputable) {
+              var end = new Date().getTime();
+              var elapsed = end - start;
+              start = end;
+              var percentComplete = evt.loaded / evt.total * 100;
+              const frag = evt.loaded - loaded;
+              loaded = evt.loaded;
+              const speed = (frag / elapsed) * 1000;
+              // console.log(`${readableFileSize(evt.loaded, true, 2)}/${readableFileSize(evt.total, true, 2)}, ${frag}, ${elapsed}ms, ${readableFileSize(speed, true)}S, ${percentComplete.toFixed(2)}%`);
+              BAR.style.width = `${percentComplete.toFixed(2)}%`;
+              CUR.innerHTML = `${readableFileSize(evt.loaded, true, 2)}`;
+              $router.setSoftKeyCenterText(`${readableFileSize(speed, true)}/s`);
+              $router.setSoftKeyRightText(BAR.style.width);
+              MAX.innerHTML = `${readableFileSize(evt.total, true, 2)}`;
+            }
+          },
+          onreadystatechange: function(evt) {
+            // console.log('onreadystatechange', evt.currentTarget.readyState, evt.currentTarget.response);
+            if (evt.currentTarget.readyState === 4) {
+              if (evt.currentTarget.status >= 200 && evt.currentTarget.status <= 399) {
+                //console.log(evt.currentTarget.status, evt.currentTarget.response);
+              } else {
+                //console.log(evt.currentTarget.status, evt.currentTarget.response);
+              }
+            }
+          },
+          onerror: function(err) {
+            console.log(err);
+          }
+        },
         dPadNavListener: {
           arrowUp: function() {},
           arrowRight: function() {},
