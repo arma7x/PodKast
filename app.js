@@ -1,4 +1,7 @@
-var APP_STATE = false;
+var BOOT = false;
+var MAIN_DURATION_SLIDER;
+var MAIN_CURRENT_TIME;
+var MAIN_DURATION;
 const APP_VERSION = '1.0.0';
 const KEY = 'PODCASTINDEX_KEY';
 const SECRET = 'PODCASTINDEX_SECRET';
@@ -1340,18 +1343,18 @@ window.addEventListener("load", () => {
       MAIN_PLAYER.addEventListener('pause', this.methods.onpause);
       MAIN_PLAYER.addEventListener('play', this.methods.onplay);
       MAIN_PLAYER.addEventListener('waiting', this.methods.onwaiting);
-      const DURATION_SLIDER = document.getElementById('main_duration_slider');
-      const CURRENT_TIME = document.getElementById('main_current_time');
-      const DURATION = document.getElementById('main_duration');
-      CURRENT_TIME.innerHTML = convertTime(MAIN_PLAYER.currentTime);
-      DURATION.innerHTML = convertTime(MAIN_PLAYER.duration);
-      DURATION_SLIDER.value = MAIN_PLAYER.currentTime;
-      DURATION_SLIDER.setAttribute("max", MAIN_PLAYER.duration);
+      MAIN_DURATION_SLIDER = document.getElementById('main_duration_slider');
+      MAIN_CURRENT_TIME = document.getElementById('main_current_time');
+      MAIN_DURATION = document.getElementById('main_duration');
+      MAIN_CURRENT_TIME.innerHTML = convertTime(MAIN_PLAYER.currentTime);
+      MAIN_DURATION.innerHTML = convertTime(MAIN_PLAYER.duration);
+      MAIN_DURATION_SLIDER.value = MAIN_PLAYER.currentTime;
+      MAIN_DURATION_SLIDER.setAttribute("max", MAIN_PLAYER.duration);
       this.methods.togglePlayIcon();
-      if (this.$state.getState(AUTOPLAY) && APP_STATE == false && this.$state.getState(ACTIVE_PODCAST) && this.$state.getState(ACTIVE_EPISODE)) {
+      if (this.$state.getState(AUTOPLAY) && BOOT == false && this.$state.getState(ACTIVE_PODCAST) && this.$state.getState(ACTIVE_EPISODE)) {
         this.methods.resumePodcast();
       }
-      APP_STATE = true;
+      BOOT = true;
     },
     unmounted: function() {
       this.$state.removeStateListener(ACTIVE_PODCAST, this.methods.activePodcastState);
@@ -1401,19 +1404,14 @@ window.addEventListener("load", () => {
         });
       },
       onloadedmetadata: function(evt) {
-        const DURATION_SLIDER = document.getElementById('main_duration_slider');
-        const DURATION = document.getElementById('main_duration');
-        DURATION.innerHTML = convertTime(evt.target.duration);
-        DURATION_SLIDER.setAttribute("max", evt.target.duration);
+        MAIN_DURATION.innerHTML = convertTime(evt.target.duration);
+        MAIN_DURATION_SLIDER.setAttribute("max", evt.target.duration);
       },
       ontimeupdate: function(evt) {
-        const DURATION_SLIDER = document.getElementById('main_duration_slider');
-        const CURRENT_TIME = document.getElementById('main_current_time');
-        const DURATION = document.getElementById('main_duration');
-        CURRENT_TIME.innerHTML = convertTime(evt.target.currentTime);
-        DURATION.innerHTML = convertTime(evt.target.duration);
-        DURATION_SLIDER.value = evt.target.currentTime;
-        DURATION_SLIDER.setAttribute("max", evt.target.duration);
+        MAIN_CURRENT_TIME.innerHTML = convertTime(evt.target.currentTime);
+        MAIN_DURATION.innerHTML = convertTime(evt.target.duration);
+        MAIN_DURATION_SLIDER.value = evt.target.currentTime;
+        MAIN_DURATION_SLIDER.setAttribute("max", evt.target.duration);
       },
       onpause: function() {
         document.getElementById('main_play_btn').src = '/icons/play.png';
