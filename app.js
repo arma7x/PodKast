@@ -723,6 +723,7 @@ window.addEventListener("load", () => {
         mounted: function() {
         },
         unmounted: function() {
+          setTimeout(cb, 100);
         },
         methods: {},
         dPadNavListener: {
@@ -998,8 +999,8 @@ window.addEventListener("load", () => {
               }, randomIntFromInterval(5, 10) * 100);
             });
           },
-          downloadAudio: function(episode) {
-            downloaderPopup($router, episode);
+          downloadAudio: function(episode, cb = () => {}) {
+            downloaderPopup($router, episode, cb);
             for (var x in this.data.pages[this.data.pageCursor]) {
               if (this.data.pages[this.data.pageCursor][x]['id'] === episode['id']) {
                 this.data.pages[this.data.pageCursor][x]['podkastLocalPath'] = true;
@@ -1074,7 +1075,7 @@ window.addEventListener("load", () => {
               } else if (selected.text === 'Delete Audio') {
                 this.methods.deleteAudio(this.data.list[this.verticalNavIndex]);
               } else if (selected.text === 'Download Audio') {
-                this.methods.downloadAudio(this.data.list[this.verticalNavIndex]);
+                this.methods.downloadAudio(this.data.list[this.verticalNavIndex], this.methods.renderLeftKeyText);
               }
             }, () => {
               setTimeout(this.methods.renderLeftKeyText, 100);
