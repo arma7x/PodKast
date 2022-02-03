@@ -939,6 +939,7 @@ window.addEventListener("load", () => {
                     episodes[id]['podkastTitle'] = episodes[id]['title'].length >= 41 ? episodes[id]['title'].slice(0, 38) + '...' : episodes[id]['title'];
                     episodes[id]['podkastBookmark'] = true;
                     episodes[id]['podkastCursor'] = false;
+                    temp.push(episodes[id]);
                   }
                   bookmarkSize--;
                   if (bookmarkSize <= 0) {
