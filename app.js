@@ -733,7 +733,7 @@ window.addEventListener("load", () => {
           arrowLeft: function() {},
         },
         backKeyListener: function(evt) {
-          return false;
+          return true;
         }
       })
     );
