@@ -488,11 +488,11 @@ window.addEventListener("load", () => {
         .then((blob) => {
           if (blob == null) {
             const req = new XMLHttpRequest({ mozSystem: true });
-            req.responseType = 'arraybuffer';
+            req.responseType = 'blob';
             req.onreadystatechange = function() {
               if (req.readyState == 4) {
                 if (req.status >= 200 && req.status <= 399) {
-                  const tempURL = window.URL.createObjectURL(new Blob([req.response]));
+                  const tempURL = window.URL.createObjectURL(req.response);
                   resizeImage(tempURL)
                   .then((imgBlob) => {
                     return TABLE_SRC.setItem(id, imgBlob);
