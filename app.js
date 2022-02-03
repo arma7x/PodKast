@@ -317,19 +317,6 @@ window.addEventListener("load", () => {
     });
   }
 
-  // DRAFT:
-  // 1.  [DONE]listenPodcast via Main Player
-  // 2.  [DONE]Play unsub podcast
-  // 5.  [DONE]if APP_STATE, AUTOPLAY, ACTIVE_PODCAST, ACTIVE_EPISODE then playPodcast
-  // 6.  [DONE]On enter, ACTIVE_PODCAST, ACTIVE_EPISODE, MAIN.src == '' then playPodcast
-  // 7.  [DONE]Main Player responsive UI
-  // 11. [DONE]Active Podcast & Active Episode indicator
-  // 8.  [DONE]Settings[Auto Sleep, Autoplay]
-  // 3. MAIN & MINI Player update podkastLastDuration
-  // 4. MAIN & MINI Player resume podkastLastDuration
-  // 9. MAIN & MINI Player playbackrate, fast-forward/rewind
-  // 10. Offline playback(downloader + episode downloaded indicator)
-  // 12. Sleep Timer
   const listenPodcast = function($router, podcast) {
     delete podcast['podkastSubscribe'];
     delete podcast['podkastThumb'];
@@ -367,6 +354,7 @@ window.addEventListener("load", () => {
   }
 
   const playPodcast = function($router, episode, playable = true) {
+    console.log(episode);
     state.setState(ACTIVE_PODCAST, episode['feedId']);
     localStorage.setItem(ACTIVE_PODCAST, episode['feedId']);
     state.setState(ACTIVE_EPISODE, episode['id']);
@@ -386,6 +374,7 @@ window.addEventListener("load", () => {
     delete episode['podkastThumb'];
     delete episode['podkastBookmark'];
     delete episode['podkastCursor'];
+    console.log(episode);
     return T_EPISODES.getItem(episode['feedId'].toString())
     .then((episodesObj) => {
       if (episodesObj == null) {
@@ -1267,14 +1256,15 @@ window.addEventListener("load", () => {
         window.localStorage.setItem('APP_VERSION', APP_VERSION);
         return;
       }
-      this.$state.addStateListener(ACTIVE_PODCAST, this.methods.listenActivePodcast);
-      this.methods.listenActivePodcast(this.$state.getState(ACTIVE_PODCAST));
-      this.$state.addStateListener(ACTIVE_EPISODE, this.methods.listenActiveEpisode);
-      this.methods.listenActiveEpisode(this.$state.getState(ACTIVE_EPISODE));
+      this.$state.addStateListener(ACTIVE_PODCAST, this.methods.activePodcastState);
+      this.methods.activePodcastState(this.$state.getState(ACTIVE_PODCAST));
+      this.$state.addStateListener(ACTIVE_EPISODE, this.methods.ActiveEpisodeState);
+      this.methods.ActiveEpisodeState(this.$state.getState(ACTIVE_EPISODE));
       MAIN_PLAYER.addEventListener('loadedmetadata', this.methods.onloadedmetadata);
       MAIN_PLAYER.addEventListener('timeupdate', this.methods.ontimeupdate);
       MAIN_PLAYER.addEventListener('pause', this.methods.onpause);
       MAIN_PLAYER.addEventListener('play', this.methods.onplay);
+      MAIN_PLAYER.addEventListener('waiting', this.methods.onwaiting);
       const DURATION_SLIDER = document.getElementById('main_duration_slider');
       const CURRENT_TIME = document.getElementById('main_current_time');
       const DURATION = document.getElementById('main_duration');
@@ -1289,15 +1279,16 @@ window.addEventListener("load", () => {
       APP_STATE = true;
     },
     unmounted: function() {
-      this.$state.removeStateListener(ACTIVE_PODCAST, this.methods.listenActivePodcast);
-      this.$state.removeStateListener(ACTIVE_EPISODE, this.methods.listenActiveEpisode);
+      this.$state.removeStateListener(ACTIVE_PODCAST, this.methods.activePodcastState);
+      this.$state.removeStateListener(ACTIVE_EPISODE, this.methods.ActiveEpisodeState);
       MAIN_PLAYER.removeEventListener('loadedmetadata', this.methods.onloadedmetadata);
       MAIN_PLAYER.removeEventListener('timeupdate', this.methods.ontimeupdate);
       MAIN_PLAYER.removeEventListener('pause', this.methods.onpause);
       MAIN_PLAYER.removeEventListener('play', this.methods.onplay);
+      MAIN_PLAYER.removeEventListener('waiting', this.methods.onwaiting);
     },
     methods: {
-      listenActivePodcast: function(podcastId) {
+      activePodcastState: function(podcastId) {
         const img = document.getElementById('main_thumb');
         if (img == null)
           return;
@@ -1319,7 +1310,7 @@ window.addEventListener("load", () => {
           });
         });
       },
-      listenActiveEpisode: function(episodeId) {
+      ActiveEpisodeState: function(episodeId) {
         const title = document.getElementById('main_title');
         if (title == null)
           return;
@@ -1354,6 +1345,9 @@ window.addEventListener("load", () => {
       },
       onplay: function() {
         document.getElementById('main_play_btn').src = '/icons/pause.png';
+      },
+      onwaiting: function(evt) {
+        console.log('onwaiting', evt);
       },
       togglePlayIcon: function() {
         if (MAIN_PLAYER.duration > 0 && !MAIN_PLAYER.paused) {
