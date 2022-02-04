@@ -1103,15 +1103,16 @@ window.addEventListener("load", () => {
             });
           },
           deleteAudio: function(episode) {
-            console.log('Delete:', episode['podkastLocalPath']);
             const path = episode['podkastLocalPath'].split('/');
-            if (path[0] == '')
-              episode.splice(0, 1);
+            if (path[0] == '') {
+              path.splice(0, 1);
+            }
+            console.log('Delete:', episode['podkastLocalPath'], path);
             const name = path.pop();
             console.log(path, name);
             DS.deleteFile(path, name, true)
             .then((result) => {
-              console.log('Deleted', result);
+              console.log('Deleted: ', result);
               episode['podkastLocalPath'] = false;
               return playEpisode($router, episode, false);
             })

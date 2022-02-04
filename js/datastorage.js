@@ -194,7 +194,7 @@ const DataStorage = (function() {
     this.indexing = indexing;
     this.deviceStorage = SDCARD;
     this.deviceStorages = SDCARDS;
-    this.trailingSlash = '';
+    this.trailingSlash = SDCARD.storageName != '' ? '/' : '';
     this.isReady = false;
     this.onChange = onChange;
     this.onReady = onReady;
