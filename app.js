@@ -396,8 +396,8 @@ window.addEventListener("load", () => {
       if (tempEpisode == null) { // !CACHE
         console.log('Podcast Ep !Cached:', episode['feedId'], episode['id']);
         tempEpisode = {};
-        tempEpisode['podkastLocalPath'] = false;
-        tempEpisode['podkastLastDuration'] = 0;
+        tempEpisode['podkastLocalPath'] = episode['podkastLocalPath'] || false;
+        tempEpisode['podkastLastDuration'] = episode['podkastLastDuration'] || false;
       }
       tempEpisode = Object.assign(tempEpisode, episode);
       episodesObj[episode['id']] = tempEpisode;
@@ -1082,10 +1082,44 @@ window.addEventListener("load", () => {
               return downloaderPopup($router, episode, this.methods.renderLeftKeyText);
             })
             .then((result) => {
-              console.log(result);
+              console.log('Updated', result);
+              playEpisode($router, result, false)
+              .then((saved) => {
+                console.log('Saved:', saved);
+                for (var x in this.data.pages[this.data.pageCursor]) {
+                  if (this.data.pages[this.data.pageCursor][x]['id'] === episode['id']) {
+                    this.data.pages[this.data.pageCursor][x]['podkastLocalPath'] = episode['podkastLocalPath'];
+                    this.methods.gotoPage(this.data.pageCursor);
+                    break;
+                  }
+                }
+              })
+              .catch((err) => {
+                console.log(err);
+              });
+            })
+            .catch((err) => {
+              console.log(err);
+            });
+          },
+          deleteAudio: function(episode) {
+            console.log('Delete:', episode['podkastLocalPath']);
+            const path = episode['podkastLocalPath'].split('/');
+            if (path[0] == '')
+              episode.splice(0, 1);
+            const name = path.pop();
+            console.log(path, name);
+            DS.deleteFile(path, name, true)
+            .then((result) => {
+              console.log('Deleted', result);
+              episode['podkastLocalPath'] = false;
+              return playEpisode($router, episode, false);
+            })
+            .then((saved) => {
+              console.log('Saved:', saved);
               for (var x in this.data.pages[this.data.pageCursor]) {
                 if (this.data.pages[this.data.pageCursor][x]['id'] === episode['id']) {
-                  this.data.pages[this.data.pageCursor][x]['podkastLocalPath'] = episode['podkastLocalPath'];
+                  this.data.pages[this.data.pageCursor][x]['podkastLocalPath'] = false;
                   this.methods.gotoPage(this.data.pageCursor);
                   break;
                 }
@@ -1094,15 +1128,6 @@ window.addEventListener("load", () => {
             .catch((err) => {
               console.log(err);
             });
-          },
-          deleteAudio: function(episode) {
-            for (var x in this.data.pages[this.data.pageCursor]) {
-              if (this.data.pages[this.data.pageCursor][x]['id'] === episode['id']) {
-                this.data.pages[this.data.pageCursor][x]['podkastLocalPath'] = false;
-                this.methods.gotoPage(this.data.pageCursor);
-                break;
-              }
-            }
           },
           renderLeftKeyText: function() {
             if ($router.stack[$router.stack.length - 1].name !== this.name)
