@@ -705,90 +705,112 @@ window.addEventListener("load", () => {
   }
 
   const downloaderPopup = function($router, episode, cb = () => {}) {
-    var BAR, CUR, MAX;
-    var start = 0;
-    var loaded = 0;
-    var req = new XMLHttpRequest({ mozSystem: true });
-    req.open('GET', episode['enclosureUrl'], true);
-    req.responseType = 'moz-blob';
+    delete episode['podkastTitle'];
+    delete episode['podkastThumb'];
+    delete episode['podkastBookmark'];
+    delete episode['podkastPlaying'];
+    delete episode['podkastCursor'];
+    const URL = 'https://www.audiocheck.net/Audio/audiocheck.net_C.ogg'; // episode['enclosureUrl']
+    //console.log(episode);
+    return new Promise((resolve, reject) => {
+      var BAR, CUR, MAX;
+      var start = 0;
+      var loaded = 0;
+      var req = new XMLHttpRequest({ mozSystem: true });
+      req.open('GET', URL, true);
+      req.responseType = 'moz-blob';
 
-    $router.showBottomSheet(
-      new Kai({
-        name: 'downloaderPopup',
-        data: {
-          title: 'downloaderPopup',
-          episode: episode,
-          downloading: false,
-        },
-        templateUrl: document.location.origin + '/templates/downloaderPopup.html',
-        softKeyText: { left: 'Cancel', center: '0KB/S', right: '0%' },
-        softKeyListener: {
-          left: function() {
-            $router.hideBottomSheet();
-            req.abort();
+      $router.showBottomSheet(
+        new Kai({
+          name: 'downloaderPopup',
+          data: {
+            title: 'downloaderPopup',
+            episode: episode,
+            downloading: false,
           },
-          center: function() {},
-          right: function() {}
-        },
-        mounted: function() {
-          BAR = document.getElementById('download_bar');
-          CUR = document.getElementById('download_cur');
-          MAX = document.getElementById('download_max');
-          req.onprogress = this.methods.onprogress;
-          req.onreadystatechange = this.methods.onreadystatechange;
-          req.onerror = this.methods.onerror;
-          start = new Date().getTime();
-          req.send();
-          setTimeout(() => {
-            req.abort();
-          }, 10000);
-        },
-        unmounted: function() {
-          setTimeout(cb, 100);
-        },
-        methods: {
-          onprogress: function(evt) {
-            if (evt.lengthComputable) {
-              var end = new Date().getTime();
-              var elapsed = end - start;
-              start = end;
-              var percentComplete = evt.loaded / evt.total * 100;
-              const frag = evt.loaded - loaded;
-              loaded = evt.loaded;
-              const speed = (frag / elapsed) * 1000;
-              // console.log(`${readableFileSize(evt.loaded, true, 2)}/${readableFileSize(evt.total, true, 2)}, ${frag}, ${elapsed}ms, ${readableFileSize(speed, true)}S, ${percentComplete.toFixed(2)}%`);
-              BAR.style.width = `${percentComplete.toFixed(2)}%`;
-              CUR.innerHTML = `${readableFileSize(evt.loaded, true, 2)}`;
-              $router.setSoftKeyCenterText(`${readableFileSize(Math.round(speed), true)}/s`);
-              $router.setSoftKeyRightText(BAR.style.width);
-              MAX.innerHTML = `${readableFileSize(evt.total, true, 2)}`;
-            }
+          templateUrl: document.location.origin + '/templates/downloaderPopup.html',
+          softKeyText: { left: 'Cancel', center: '0KB/S', right: '0%' },
+          softKeyListener: {
+            left: function() {
+              $router.hideBottomSheet();
+              req.abort();
+            },
+            center: function() {},
+            right: function() {}
           },
-          onreadystatechange: function(evt) {
-            // console.log('onreadystatechange', evt.currentTarget.readyState, evt.currentTarget.response);
-            if (evt.currentTarget.readyState === 4) {
-              if (evt.currentTarget.status >= 200 && evt.currentTarget.status <= 399) {
-                //console.log(evt.currentTarget.status, evt.currentTarget.response);
-              } else {
-                //console.log(evt.currentTarget.status, evt.currentTarget.response);
+          mounted: function() {
+            BAR = document.getElementById('download_bar');
+            CUR = document.getElementById('download_cur');
+            MAX = document.getElementById('download_max');
+            req.onprogress = this.methods.onprogress;
+            req.onreadystatechange = this.methods.onreadystatechange;
+            req.onerror = this.methods.onerror;
+            start = new Date().getTime();
+            req.send();
+            setTimeout(() => {
+              req.abort();
+            }, 10000);
+          },
+          unmounted: function() {
+            resolve(episode);
+            setTimeout(cb, 100);
+          },
+          methods: {
+            onprogress: function(evt) {
+              if (evt.lengthComputable) {
+                var end = new Date().getTime();
+                var elapsed = end - start;
+                start = end;
+                var percentComplete = evt.loaded / evt.total * 100;
+                const frag = evt.loaded - loaded;
+                loaded = evt.loaded;
+                const speed = (frag / elapsed) * 1000;
+                // console.log(`${readableFileSize(evt.loaded, true, 2)}/${readableFileSize(evt.total, true, 2)}, ${frag}, ${elapsed}ms, ${readableFileSize(speed, true)}S, ${percentComplete.toFixed(2)}%`);
+                BAR.style.width = `${percentComplete.toFixed(2)}%`;
+                CUR.innerHTML = `${readableFileSize(evt.loaded, true, 2)}`;
+                $router.setSoftKeyCenterText(`${readableFileSize(Math.round(speed), true)}/s`);
+                $router.setSoftKeyRightText(BAR.style.width);
+                MAX.innerHTML = `${readableFileSize(evt.total, true, 2)}`;
               }
+            },
+            onreadystatechange: function(evt) {
+              // console.log('onreadystatechange', evt.currentTarget.readyState, evt.currentTarget.response);
+              if (evt.currentTarget.readyState === 4) {
+                if (evt.currentTarget.status >= 200 && evt.currentTarget.status <= 399) {
+                  const paths = URL.split('/');
+                  const file = paths[paths.length - 1].split('.');
+                  var localPath = ['podkast', 'cache', episode['feedId']];
+                  if (DS.deviceStorage.storageName != '') {
+                    localPath = [DS.deviceStorage.storageName, ...localPath];
+                  }
+                  console.log(localPath, `${episode['id']}.${file[file.length - 1]}`, evt.currentTarget.status, evt.currentTarget.response);
+                  DS.addFile(localPath, `${episode['id']}.${file[file.length - 1]}`, evt.currentTarget.response)
+                  .then((file) => {
+                    console.log(file);
+                    episode['podkastLocalPath'] = file.name;
+                    $router.setSoftKeyCenterText('SUCCESS');
+                    $router.setSoftKeyLeftText('Close');
+                  })
+                  .catch((err) => {
+                    console.log(err);
+                    $router.setSoftKeyCenterText('FAIL');
+                    $router.setSoftKeyLeftText('Exit');
+                  });
+                }
+              }
+            },
+            onerror: function(err) {
+              console.log(err);
+              $router.setSoftKeyCenterText('FAIL');
+              $router.setSoftKeyRightText('Exit');
             }
           },
-          onerror: function(err) {
-            console.log(err);
+          backKeyListener: function(evt) {
+            return true;
           }
-        },
-        dPadNavListener: {
-          arrowUp: function() {},
-          arrowRight: function() {},
-          arrowDown: function() {},
-          arrowLeft: function() {},
-        },
-        backKeyListener: function(evt) {
-          return true;
-        }
-      })
-    );
+        })
+      );
+    });
   }
 
   const miniPlayer = function($router, episode, cb = () => {}) {
@@ -984,7 +1006,7 @@ window.addEventListener("load", () => {
                   });
                 }
               }
-              console.log(pages);
+              // console.log(pages);
               this.data.pages = pages;
               this.methods.gotoPage(this.data.pageCursor);
               //this.setData({ list: data });
@@ -1054,15 +1076,24 @@ window.addEventListener("load", () => {
               }, randomIntFromInterval(5, 10) * 100);
             });
           },
-          downloadAudio: function(episode, cb = () => {}) {
-            downloaderPopup($router, episode, cb);
-            for (var x in this.data.pages[this.data.pageCursor]) {
-              if (this.data.pages[this.data.pageCursor][x]['id'] === episode['id']) {
-                this.data.pages[this.data.pageCursor][x]['podkastLocalPath'] = true;
-                this.methods.gotoPage(this.data.pageCursor);
-                break;
+          downloadAudio: function(episode) {
+            verifyDomainSSL(episode['enclosureUrl'])
+            .then((validUrl) => {
+              return downloaderPopup($router, episode, this.methods.renderLeftKeyText);
+            })
+            .then((result) => {
+              console.log(result);
+              for (var x in this.data.pages[this.data.pageCursor]) {
+                if (this.data.pages[this.data.pageCursor][x]['id'] === episode['id']) {
+                  this.data.pages[this.data.pageCursor][x]['podkastLocalPath'] = episode['podkastLocalPath'];
+                  this.methods.gotoPage(this.data.pageCursor);
+                  break;
+                }
               }
-            }
+            })
+            .catch((err) => {
+              console.log(err);
+            });
           },
           deleteAudio: function(episode) {
             for (var x in this.data.pages[this.data.pageCursor]) {
@@ -1130,7 +1161,7 @@ window.addEventListener("load", () => {
               } else if (selected.text === 'Delete Audio') {
                 this.methods.deleteAudio(this.data.list[this.verticalNavIndex]);
               } else if (selected.text === 'Download Audio') {
-                this.methods.downloadAudio(this.data.list[this.verticalNavIndex], this.methods.renderLeftKeyText);
+                this.methods.downloadAudio(JSON.parse(JSON.stringify(this.data.list[this.verticalNavIndex])));
               }
             }, () => {
               setTimeout(this.methods.renderLeftKeyText, 100);
