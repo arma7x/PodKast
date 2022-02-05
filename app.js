@@ -355,7 +355,7 @@ window.addEventListener("load", () => {
   }
 
   const playPodcast = function($router, episode, playable = true) {
-    console.log(episode);
+    // console.log(episode);
     state.setState(ACTIVE_PODCAST, episode['feedId']);
     localStorage.setItem(ACTIVE_PODCAST, episode['feedId']);
     state.setState(ACTIVE_EPISODE, episode['id']);
@@ -386,7 +386,7 @@ window.addEventListener("load", () => {
     delete episode['podkastBookmark'];
     delete episode['podkastPlaying'];
     delete episode['podkastCursor'];
-    console.log(episode);
+    // console.log(episode);
     return T_EPISODES.getItem(episode['feedId'].toString())
     .then((episodesObj) => {
       if (episodesObj == null) {
@@ -480,7 +480,7 @@ window.addEventListener("load", () => {
     return function(url) {
       const id = sha1(btoa(url));
       if (thumbHash[id] != null) {
-        console.log('FROM HASH', id, thumbHash[id]);
+        // console.log('FROM HASH', id, thumbHash[id]);
         return Promise.resolve(thumbHash[id]);
       }
       return new Promise((resolve, reject) => {
@@ -708,7 +708,7 @@ window.addEventListener("load", () => {
     delete episode['podkastPlaying'];
     delete episode['podkastCursor'];
     const URL = 'https://www.audiocheck.net/Audio/audiocheck.net_C.ogg'; // episode['enclosureUrl']
-    //console.log(episode);
+    // console.log(episode);
     return new Promise((resolve, reject) => {
       var BAR, CUR, MAX;
       var start = 0;
@@ -780,10 +780,10 @@ window.addEventListener("load", () => {
                   if (DS.deviceStorage.storageName != '') {
                     localPath = [DS.deviceStorage.storageName, ...localPath];
                   }
-                  console.log(localPath, `${episode['id']}.${file[file.length - 1]}`, evt.currentTarget.status, evt.currentTarget.response);
+                  // console.log(localPath, `${episode['id']}.${file[file.length - 1]}`, evt.currentTarget.status, evt.currentTarget.response);
                   DS.addFile(localPath, `${episode['id']}.${file[file.length - 1]}`, evt.currentTarget.response)
                   .then((file) => {
-                    console.log(file);
+                    // console.log(file);
                     episode['podkastLocalPath'] = file.name;
                     $router.setSoftKeyCenterText('SUCCESS');
                     $router.setSoftKeyLeftText('Close');
@@ -984,17 +984,17 @@ window.addEventListener("load", () => {
             T_PODCASTS.getItem(feedId.toString())
             .then((podcast) => {
               const cursor = podcast != null ? podcast['podkastCurrentEpisode'] : false;
-              console.log('CURSOR:',cursor, episodeId);
+              // console.log('CURSOR:',cursor, episodeId);
               const pages = [];
               const temp = JSON.parse(JSON.stringify(data));
               while (temp.length > 0) {
                 pages.push(temp.splice(0, 20));
                 if (this.data.init && ((episodeId != null && episodeId != false) || cursor)) {
                   const matchId = episodeId || cursor;
-                  console.log('matchId:', matchId);
+                  // console.log('matchId:', matchId);
                   pages[pages.length - 1].forEach((ep, idx) => {
                     if (ep['id'] === matchId) {
-                      console.log(pages.length - 1, idx, pages[pages.length - 1][idx]['podkastCursor']);
+                      // console.log(pages.length - 1, idx, pages[pages.length - 1][idx]['podkastCursor']);
                       pages[pages.length - 1][idx]['podkastCursor'] = true;
                       // this.data.init = false;
                       this.data.pageCursor = pages.length - 1;
@@ -1079,10 +1079,10 @@ window.addEventListener("load", () => {
               return downloaderPopup($router, episode, this.methods.renderLeftKeyText);
             })
             .then((result) => {
-              console.log('Updated', result);
+              // console.log('Updated', result);
               playEpisode($router, result, false)
               .then((saved) => {
-                console.log('Saved:', saved);
+                // console.log('Saved:', saved);
                 for (var x in this.data.pages[this.data.pageCursor]) {
                   if (this.data.pages[this.data.pageCursor][x]['id'] === episode['id']) {
                     this.data.pages[this.data.pageCursor][x]['podkastLocalPath'] = episode['podkastLocalPath'];
@@ -1104,17 +1104,17 @@ window.addEventListener("load", () => {
             if (path[0] == '') {
               path.splice(0, 1);
             }
-            console.log('Delete:', episode['podkastLocalPath'], path);
+            // console.log('Delete:', episode['podkastLocalPath'], path);
             const name = path.pop();
-            console.log(path, name);
+            // console.log(path, name);
             DS.deleteFile(path, name, true)
             .then((result) => {
-              console.log('Deleted: ', result);
+              // console.log('Deleted: ', result);
               episode['podkastLocalPath'] = false;
               return playEpisode($router, episode, false);
             })
             .then((saved) => {
-              console.log('Saved:', saved);
+              // console.log('Saved:', saved);
               for (var x in this.data.pages[this.data.pageCursor]) {
                 if (this.data.pages[this.data.pageCursor][x]['id'] === episode['id']) {
                   this.data.pages[this.data.pageCursor][x]['podkastLocalPath'] = false;
@@ -1448,7 +1448,7 @@ window.addEventListener("load", () => {
       MAIN_PLAYER.addEventListener('timeupdate', this.methods.ontimeupdate);
       MAIN_PLAYER.addEventListener('pause', this.methods.onpause);
       MAIN_PLAYER.addEventListener('play', this.methods.onplay);
-      MAIN_PLAYER.addEventListener('waiting', this.methods.onwaiting);
+      MAIN_PLAYER.addEventListener('progress', this.methods.onprogress);
       MAIN_DURATION_SLIDER = document.getElementById('main_duration_slider');
       MAIN_CURRENT_TIME = document.getElementById('main_current_time');
       MAIN_DURATION = document.getElementById('main_duration');
@@ -1469,7 +1469,7 @@ window.addEventListener("load", () => {
       MAIN_PLAYER.removeEventListener('timeupdate', this.methods.ontimeupdate);
       MAIN_PLAYER.removeEventListener('pause', this.methods.onpause);
       MAIN_PLAYER.removeEventListener('play', this.methods.onplay);
-      MAIN_PLAYER.removeEventListener('waiting', this.methods.onwaiting);
+      MAIN_PLAYER.removeEventListener('progress', this.methods.onprogress);
     },
     methods: {
       activePodcastState: function(podcastId) {
@@ -1525,8 +1525,8 @@ window.addEventListener("load", () => {
       onplay: function() {
         document.getElementById('main_play_btn').src = '/icons/pause.png';
       },
-      onwaiting: function(evt) {
-        console.log('onwaiting', evt);
+      onprogress: function(evt) {
+        console.log('onprogress', evt);
       },
       togglePlayIcon: function() {
         if (MAIN_PLAYER.duration > 0 && !MAIN_PLAYER.paused) {
@@ -1601,7 +1601,7 @@ window.addEventListener("load", () => {
     softKeyText: { left: 'Episodes', center: '', right: 'Menu' },
     softKeyListener: {
       left: function() {
-        console.log(this.$state.getState(ACTIVE_PODCAST), this.$state.getState(ACTIVE_EPISODE));
+        // console.log(this.$state.getState(ACTIVE_PODCAST), this.$state.getState(ACTIVE_EPISODE));
         if ([null, false].indexOf(this.$state.getState(ACTIVE_PODCAST)) > -1 || [null, false].indexOf(this.$state.getState(ACTIVE_EPISODE)) > -1)
           return;
         T_EPISODES.getItem(this.$state.getState(ACTIVE_PODCAST).toString())
@@ -1617,7 +1617,7 @@ window.addEventListener("load", () => {
         });
       },
       center: function() {
-        console.log(this.$state.getState(ACTIVE_PODCAST), this.$state.getState(ACTIVE_EPISODE));
+        // console.log(this.$state.getState(ACTIVE_PODCAST), this.$state.getState(ACTIVE_EPISODE));
         if ([null, false].indexOf(this.$state.getState(ACTIVE_PODCAST)) > -1 || [null, false].indexOf(this.$state.getState(ACTIVE_EPISODE)) > -1)
           return;
         if (MAIN_PLAYER.src == '' && this.$state.getState(ACTIVE_PODCAST) && this.$state.getState(ACTIVE_EPISODE)) {
@@ -1761,7 +1761,7 @@ window.addEventListener("load", () => {
             case 'Favorite Episodes':
               episodeListPage(this.$router, selected.text, null, {
                 'Podcast Info': (episode) => {
-                  console.log(selected.text, 'Podcast Info', episode.feedId);
+                  // console.log(selected.text, 'Podcast Info', episode.feedId);
                   this.$router.showLoading();
                   podcastIndex.getFeed(episode.feedId)
                   .then((result) => {
