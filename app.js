@@ -1462,8 +1462,8 @@ window.addEventListener("load", () => {
       MAIN_CURRENT_TIME.innerHTML = convertTime(MAIN_PLAYER.currentTime);
       this.$state.addStateListener(ACTIVE_PODCAST, this.methods.activePodcastState);
       this.methods.activePodcastState(this.$state.getState(ACTIVE_PODCAST));
-      this.$state.addStateListener(ACTIVE_EPISODE, this.methods.ActiveEpisodeState);
-      this.methods.ActiveEpisodeState(this.$state.getState(ACTIVE_EPISODE));
+      this.$state.addStateListener(ACTIVE_EPISODE, this.methods.activeEpisodeState);
+      this.methods.activeEpisodeState(this.$state.getState(ACTIVE_EPISODE));
       MAIN_PLAYER.addEventListener('loadedmetadata', this.methods.onloadedmetadata);
       MAIN_PLAYER.addEventListener('timeupdate', this.methods.ontimeupdate);
       MAIN_PLAYER.addEventListener('pause', this.methods.onpause);
@@ -1481,7 +1481,7 @@ window.addEventListener("load", () => {
     },
     unmounted: function() {
       this.$state.removeStateListener(ACTIVE_PODCAST, this.methods.activePodcastState);
-      this.$state.removeStateListener(ACTIVE_EPISODE, this.methods.ActiveEpisodeState);
+      this.$state.removeStateListener(ACTIVE_EPISODE, this.methods.activeEpisodeState);
       MAIN_PLAYER.removeEventListener('loadedmetadata', this.methods.onloadedmetadata);
       MAIN_PLAYER.removeEventListener('timeupdate', this.methods.ontimeupdate);
       MAIN_PLAYER.removeEventListener('pause', this.methods.onpause);
@@ -1515,7 +1515,7 @@ window.addEventListener("load", () => {
           });
         });
       },
-      ActiveEpisodeState: function(episodeId) {
+      activeEpisodeState: function(episodeId) {
         const title = MAIN_TITLE;
         if (title == null)
           return;
