@@ -1582,6 +1582,9 @@ window.addEventListener("load", () => {
         if (MAIN_PLAYER.duration <= 0)
           return;
         switch(evt.key) {
+          case 'Call':
+            MAIN_PLAYER.fastSeek(0);
+            break;
           case '1':
             var time = MAIN_PLAYER.currentTime - 30;
             if (time <= 0)
