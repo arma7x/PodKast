@@ -30,6 +30,20 @@ window.addEventListener("load", () => {
   const MAIN_PLAYER = document.createElement("audio");
   MAIN_PLAYER.volume = 1;
   MAIN_PLAYER.mozAudioChannelType = 'content';
+  MAIN_PLAYER.addEventListener('timeupdate', (evt) => {
+    T_EPISODES.getItem(localStorage.getItem(ACTIVE_PODCAST).toString())
+    .then((episodes) => {
+      if (episodes != null && episodes[localStorage.getItem(ACTIVE_EPISODE)] != null) {
+        const episode = episodes[localStorage.getItem(ACTIVE_EPISODE)];
+        episode['podkastLastDuration'] = evt.target.currentTime;
+        episodes[localStorage.getItem(ACTIVE_EPISODE)] = episode;
+        T_EPISODES.setItem(localStorage.getItem(ACTIVE_PODCAST).toString(), episodes);
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+  });
 
   const MINI_PLAYER = document.createElement("audio");
   MINI_PLAYER.volume = 1;
@@ -359,7 +373,10 @@ window.addEventListener("load", () => {
   }
 
   const playPodcast = function($router, episode, playable = true) {
-    // console.log(episode);
+    const loadedmetadata = () => {
+      MAIN_PLAYER.fastSeek(episode['podkastLastDuration']);
+      MINI_PLAYER.removeEventListener('loadedmetadata', loadedmetadata);
+    }
     state.setState(ACTIVE_PODCAST, episode['feedId']);
     localStorage.setItem(ACTIVE_PODCAST, episode['feedId']);
     state.setState(ACTIVE_EPISODE, episode['id']);
@@ -370,8 +387,8 @@ window.addEventListener("load", () => {
     MINI_PLAYER.src = '';
     MINI_PLAYER.pause();
     MINI_PLAYER.fastSeek(0);
+    MAIN_PLAYER.addEventListener('loadedmetadata', loadedmetadata);
     MAIN_PLAYER.src = episode['enclosureUrl'];
-    MAIN_PLAYER.fastSeek(episode['podkastLastDuration']);
     MAIN_PLAYER.play();
     T_PODCASTS.getItem(episode['feedId'].toString())
     .then((savedPodcast) => {
