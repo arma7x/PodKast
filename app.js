@@ -1487,6 +1487,7 @@ window.addEventListener("load", () => {
       MAIN_PLAYER.addEventListener('play', this.methods.onplay);
       MAIN_PLAYER.addEventListener('seeking', this.methods.onseeking);
       MAIN_PLAYER.addEventListener('seeked', this.methods.onseeked);
+      document.addEventListener('keydown', this.methods.onKeydown);
       MAIN_DURATION.innerHTML = convertTime(MAIN_PLAYER.duration);
       MAIN_DURATION_SLIDER.value = MAIN_PLAYER.currentTime;
       MAIN_DURATION_SLIDER.setAttribute("max", MAIN_PLAYER.duration);
@@ -1505,6 +1506,7 @@ window.addEventListener("load", () => {
       MAIN_PLAYER.removeEventListener('play', this.methods.onplay);
       MAIN_PLAYER.removeEventListener('seeking', this.methods.onseeking);
       MAIN_PLAYER.removeEventListener('seeked', this.methods.onseeked);
+      document.removeEventListener('keydown', this.methods.onKeydown);
     },
     methods: {
       activePodcastState: function(podcastId) {
@@ -1574,6 +1576,48 @@ window.addEventListener("load", () => {
       },
       onseeked: function(evt) {
         MAIN_THUMB_BUFF.style.visibility = 'hidden';
+      },
+      onKeydown: function(evt) {
+        if (MAIN_PLAYER.duration <= 0)
+          return;
+        switch(evt.key) {
+          case '1':
+            var time = MAIN_PLAYER.currentTime - 30;
+            if (time <= 0)
+              time = 0;
+            MAIN_PLAYER.fastSeek(time);
+            break;
+          case '3':
+            var time = MAIN_PLAYER.currentTime + 30;
+            if (time >= MAIN_PLAYER.duration)
+              time = MAIN_PLAYER.duration;
+            MAIN_PLAYER.fastSeek(time);
+            break;
+          case '4':
+            var time = MAIN_PLAYER.currentTime - 60;
+            if (time <= 0)
+              time = 0;
+            MAIN_PLAYER.fastSeek(time);
+            break;
+          case '6':
+            var time = MAIN_PLAYER.currentTime + 60;
+            if (time >= MAIN_PLAYER.duration)
+              time = MAIN_PLAYER.duration;
+            MAIN_PLAYER.fastSeek(time);
+            break;
+          case '7':
+            var time = MAIN_PLAYER.currentTime - (0.01 * MAIN_PLAYER.duration);
+            if (time <= 0)
+              time = 0;
+            MAIN_PLAYER.fastSeek(time);
+            break;
+          case '9':
+            var time = MAIN_PLAYER.currentTime + (0.01 * MAIN_PLAYER.duration);
+            if (time >= MAIN_PLAYER.duration)
+              time = MAIN_PLAYER.duration;
+            MAIN_PLAYER.fastSeek(time);
+            break;
+        }
       },
       togglePlayIcon: function() {
         if (MAIN_PLAYER.duration > 0 && !MAIN_PLAYER.paused) {
@@ -1844,13 +1888,13 @@ window.addEventListener("load", () => {
         volumeUp(MAIN_PLAYER);
       },
       arrowRight: function() {
-        MAIN_PLAYER.fastSeek(MAIN_PLAYER.currentTime + 60);
+        MAIN_PLAYER.fastSeek(MAIN_PLAYER.currentTime + 10);
       },
       arrowDown: function() {
         volumeDown(MAIN_PLAYER);
       },
       arrowLeft: function() {
-        MAIN_PLAYER.fastSeek(MAIN_PLAYER.currentTime - 60);
+        MAIN_PLAYER.fastSeek(MAIN_PLAYER.currentTime - 10);
       },
     }
   });
