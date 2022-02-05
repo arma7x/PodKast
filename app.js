@@ -1492,6 +1492,7 @@ window.addEventListener("load", () => {
       MAIN_DURATION_SLIDER.value = MAIN_PLAYER.currentTime;
       MAIN_DURATION_SLIDER.setAttribute("max", MAIN_PLAYER.duration);
       this.methods.togglePlayIcon();
+      this.methods.renderCenterKeyText();
       if (this.$state.getState(AUTOPLAY) && BOOT == false && this.$state.getState(ACTIVE_PODCAST) && this.$state.getState(ACTIVE_EPISODE)) {
         this.methods.resumePodcast();
       }
@@ -1617,6 +1618,22 @@ window.addEventListener("load", () => {
               time = MAIN_PLAYER.duration;
             MAIN_PLAYER.fastSeek(time);
             break;
+          case '2':
+            if (MAIN_PLAYER.playbackRate >= 4)
+              return
+            MAIN_PLAYER.playbackRate += 0.25;
+            this.methods.renderCenterKeyText();
+            break;
+          case '5':
+            MAIN_PLAYER.playbackRate = 1;
+            this.methods.renderCenterKeyText();
+            break;
+          case '8':
+            if (MAIN_PLAYER.playbackRate <= 0.5)
+              return
+            MAIN_PLAYER.playbackRate -= 0.25;
+            this.methods.renderCenterKeyText();
+            break;
         }
       },
       togglePlayIcon: function() {
@@ -1633,6 +1650,9 @@ window.addEventListener("load", () => {
             playPodcast(this.$router, JSON.parse(JSON.stringify(episodes[this.$state.getState(ACTIVE_EPISODE)])));
           }
         });
+      },
+      renderCenterKeyText: function() {
+        this.$router.setSoftKeyCenterText(`${MAIN_PLAYER.playbackRate}x`);
       },
       showInputDialog: function(title, placeholder, cb = () => {}) {
         const searchDialog = Kai.createDialog(title, `<div><input id="keyword-input" type="text" placeholder="${placeholder}" class="kui-input"/></div>`, null, '', undefined, '', undefined, '', undefined, undefined, this.$router);
@@ -1880,7 +1900,13 @@ window.addEventListener("load", () => {
               window.close();
               break;
           }
-        }, () => {});
+        }, () => {
+          setTimeout(() => {
+            if (this.$router.stack[this.$router.stack.length - 1].name !== this.name)
+              return;
+            this.methods.renderCenterKeyText();
+          }, 100);
+        });
       }
     },
     dPadNavListener: {
