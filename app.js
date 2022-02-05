@@ -374,7 +374,6 @@ window.addEventListener("load", () => {
 
   const playPodcast = function($router, episode, playable = true) {
     const loadedmetadata = () => {
-      console.log('PODCAST RESUME:', episode['podkastLastDuration']);
       MAIN_PLAYER.fastSeek(episode['podkastLastDuration']);
       MINI_PLAYER.removeEventListener('loadedmetadata', loadedmetadata);
     }
@@ -382,9 +381,6 @@ window.addEventListener("load", () => {
     localStorage.setItem(ACTIVE_PODCAST, episode['feedId']);
     state.setState(ACTIVE_EPISODE, episode['id']);
     localStorage.setItem(ACTIVE_EPISODE, episode['id']);
-    // console.log(state.getState(ACTIVE_PODCAST), localStorage.getItem(ACTIVE_PODCAST));
-    // console.log(state.getState(ACTIVE_EPISODE), localStorage.getItem(ACTIVE_EPISODE));
-    // console.log(state.getState(ACTIVE_PODCAST), state.getState(ACTIVE_EPISODE), episode, playable);
     MINI_PLAYER.src = '';
     MINI_PLAYER.pause();
     MINI_PLAYER.fastSeek(0);
@@ -409,7 +405,6 @@ window.addEventListener("load", () => {
     delete episode['podkastBookmark'];
     delete episode['podkastPlaying'];
     delete episode['podkastCursor'];
-    // console.log(episode);
     return T_EPISODES.getItem(episode['feedId'].toString())
     .then((episodesObj) => {
       if (episodesObj == null) {
@@ -424,7 +419,6 @@ window.addEventListener("load", () => {
         tempEpisode = Object.assign(episode, tempEpisode);
       }
       episodesObj[episode['id']] = tempEpisode;
-      console.log(episodesObj[episode['id']]);
       T_EPISODES.setItem(episode['feedId'].toString(), episodesObj);
       if (playable)
         miniPlayer(router, episodesObj[episode['id']], cb);
@@ -504,7 +498,6 @@ window.addEventListener("load", () => {
     return function(url) {
       const id = sha1(btoa(url));
       if (thumbHash[id] != null) {
-        // console.log('FROM HASH', id, thumbHash[id]);
         return Promise.resolve(thumbHash[id]);
       }
       return new Promise((resolve, reject) => {
@@ -732,7 +725,6 @@ window.addEventListener("load", () => {
     delete episode['podkastPlaying'];
     delete episode['podkastCursor'];
     const URL = 'https://www.audiocheck.net/Audio/audiocheck.net_C.ogg'; // episode['enclosureUrl']
-    // console.log(episode);
     return new Promise((resolve, reject) => {
       var BAR, CUR, MAX;
       var start = 0;
@@ -786,7 +778,6 @@ window.addEventListener("load", () => {
                 const frag = evt.loaded - loaded;
                 loaded = evt.loaded;
                 const speed = (frag / elapsed) * 1000;
-                // console.log(`${readableFileSize(evt.loaded, true, 2)}/${readableFileSize(evt.total, true, 2)}, ${frag}, ${elapsed}ms, ${readableFileSize(speed, true)}S, ${percentComplete.toFixed(2)}%`);
                 BAR.style.width = `${percentComplete.toFixed(2)}%`;
                 CUR.innerHTML = `${readableFileSize(evt.loaded, true, 2)}`;
                 $router.setSoftKeyCenterText(`${readableFileSize(Math.round(speed), true)}/s`);
@@ -795,7 +786,6 @@ window.addEventListener("load", () => {
               }
             },
             onreadystatechange: function(evt) {
-              // console.log('onreadystatechange', evt.currentTarget.readyState, evt.currentTarget.response);
               if (evt.currentTarget.readyState === 4) {
                 if (evt.currentTarget.status >= 200 && evt.currentTarget.status <= 399) {
                   const paths = URL.split('/');
@@ -804,10 +794,8 @@ window.addEventListener("load", () => {
                   if (DS.deviceStorage.storageName != '') {
                     localPath = [DS.deviceStorage.storageName, ...localPath];
                   }
-                  // console.log(localPath, `${episode['id']}.${file[file.length - 1]}`, evt.currentTarget.status, evt.currentTarget.response);
                   DS.addFile(localPath, `${episode['id']}.${file[file.length - 1]}`, evt.currentTarget.response)
                   .then((file) => {
-                    // console.log(file);
                     episode['podkastLocalPath'] = file.name;
                     $router.setSoftKeyCenterText('SUCCESS');
                     $router.setSoftKeyLeftText('Close');
@@ -835,8 +823,6 @@ window.addEventListener("load", () => {
   }
 
   const miniPlayer = function($router, episode, cb = () => {}) {
-    // feedTitle title enclosureUrl
-    // console.log(episode);
     var MINI_THUMB, DURATION_SLIDER, CURRENT_TIME, DURATION, PLAY_BUTTON, THUMB_BUFF;
     $router.showBottomSheet(
       new Kai({
@@ -1084,7 +1070,6 @@ window.addEventListener("load", () => {
             this.methods.renderLeftKeyText();
           },
           listenState: function(updated) {
-            // console.log('listenState', TABLE_BOOKMARKED, updated);
             if (data == null) {
               this.methods.processDataNull(updated);
             } else {
@@ -1092,7 +1077,6 @@ window.addEventListener("load", () => {
             }
           },
           processData: function(bookmarkList) {
-            //console.log('processData', TABLE_BOOKMARKED, bookmarkList);
             var feedId = '000000000000000000000';
             data.forEach((i) => {
               feedId = i['feedId'];
@@ -1113,17 +1097,14 @@ window.addEventListener("load", () => {
             T_PODCASTS.getItem(feedId.toString())
             .then((podcast) => {
               const cursor = podcast != null ? podcast['podkastCurrentEpisode'] : false;
-              // console.log('CURSOR:', cursor, episodeId);
               const pages = [];
               const temp = JSON.parse(JSON.stringify(data));
               while (temp.length > 0) {
                 pages.push(temp.splice(0, 20));
                 if (this.data.init && ((episodeId != null && episodeId != false) || cursor)) {
                   const matchId = episodeId || cursor;
-                  // console.log('matchId:', matchId);
                   pages[pages.length - 1].forEach((ep, idx) => {
                     if (ep['id'] === matchId) {
-                      // console.log(pages.length - 1, idx, pages[pages.length - 1][idx]['podkastCursor']);
                       pages[pages.length - 1][idx]['podkastCursor'] = true;
                       this.data.init = false;
                       this.data.pageCursor = pages.length - 1;
@@ -1138,10 +1119,8 @@ window.addEventListener("load", () => {
                   });
                 }
               }
-              // console.log(pages);
               this.data.pages = pages;
               this.methods.gotoPage(this.data.pageCursor);
-              //this.setData({ list: data });
             });
           },
           processDataNull: function(bookmarkList) {
@@ -1214,10 +1193,8 @@ window.addEventListener("load", () => {
               return downloaderPopup($router, episode, this.methods.renderLeftKeyText);
             })
             .then((result) => {
-              // console.log('Updated', result);
               playEpisode($router, result, false)
               .then((saved) => {
-                // console.log('Saved:', saved);
                 for (var x in this.data.pages[this.data.pageCursor]) {
                   if (this.data.pages[this.data.pageCursor][x]['id'] === episode['id']) {
                     this.data.pages[this.data.pageCursor][x]['podkastLocalPath'] = episode['podkastLocalPath'];
@@ -1239,17 +1216,13 @@ window.addEventListener("load", () => {
             if (path[0] == '') {
               path.splice(0, 1);
             }
-            // console.log('Delete:', episode['podkastLocalPath'], path);
             const name = path.pop();
-            // console.log(path, name);
             DS.deleteFile(path, name, true)
             .then((result) => {
-              // console.log('Deleted: ', result);
               episode['podkastLocalPath'] = false;
               return playEpisode($router, episode, false);
             })
             .then((saved) => {
-              // console.log('Saved:', saved);
               for (var x in this.data.pages[this.data.pageCursor]) {
                 if (this.data.pages[this.data.pageCursor][x]['id'] === episode['id']) {
                   this.data.pages[this.data.pageCursor][x]['podkastLocalPath'] = false;
@@ -1273,7 +1246,6 @@ window.addEventListener("load", () => {
           left: function() {
             if (this.data.list[this.verticalNavIndex] == null)
               return;
-            // console.log(this.data.list[this.verticalNavIndex].description);
           },
           center: function() {
             if (this.data.list[this.verticalNavIndex] == null)
@@ -1385,7 +1357,6 @@ window.addEventListener("load", () => {
         },
         methods: {
           listenState: function(updated) {
-            // console.log('listenState', TABLE_SUBSCRIBED, updated);
             if (data == null) {
               this.methods.processDataNull(updated);
             } else {
@@ -1393,7 +1364,6 @@ window.addEventListener("load", () => {
             }
           },
           processData: function(subscribedList) {
-            // console.log('processData', TABLE_SUBSCRIBED, subscribedList);
             data.forEach((i) => {
               const listen = MAIN_PLAYER.duration > 0 && !MAIN_PLAYER.paused && state.getState(ACTIVE_PODCAST).toString() == i['id'].toString();
               i['podkastListening'] = listen;
@@ -1411,7 +1381,6 @@ window.addEventListener("load", () => {
             this.methods.optimize();
           },
           processDataNull: function(subscribedList) {
-            // console.log(subscribedList);
             if (subscribedList.length === 0) {
               this.setData({ list: [] });
               return;
@@ -1475,13 +1444,11 @@ window.addEventListener("load", () => {
           left: function() {
             if (this.data.list[this.verticalNavIndex] == null)
               return;
-            // console.log(this.data.list[this.verticalNavIndex]);
             descriptionPage($router, this.data.list[this.verticalNavIndex]);
           },
           center: function() {
             if (this.data.list[this.verticalNavIndex] == null)
               return;
-            // console.log(this.data.list[this.verticalNavIndex]);
             const podcast = JSON.parse(JSON.stringify(this.data.list[this.verticalNavIndex]));
             if (MAIN_PLAYER.duration > 0 && !MAIN_PLAYER.paused && state.getState(ACTIVE_PODCAST).toString() === podcast['id'].toString())
               return;
@@ -1827,7 +1794,6 @@ window.addEventListener("load", () => {
     softKeyText: { left: 'Episodes', center: '', right: 'Menu' },
     softKeyListener: {
       left: function() {
-        // console.log(this.$state.getState(ACTIVE_PODCAST), this.$state.getState(ACTIVE_EPISODE));
         if ([null, false].indexOf(this.$state.getState(ACTIVE_PODCAST)) > -1 || [null, false].indexOf(this.$state.getState(ACTIVE_EPISODE)) > -1)
           return;
         T_EPISODES.getItem(this.$state.getState(ACTIVE_PODCAST).toString())
@@ -1843,7 +1809,6 @@ window.addEventListener("load", () => {
         });
       },
       center: function() {
-        // console.log(this.$state.getState(ACTIVE_PODCAST), this.$state.getState(ACTIVE_EPISODE));
         if ([null, false].indexOf(this.$state.getState(ACTIVE_PODCAST)) > -1 || [null, false].indexOf(this.$state.getState(ACTIVE_EPISODE)) > -1)
           return;
         if (MAIN_PLAYER.src == '' && this.$state.getState(ACTIVE_PODCAST) && this.$state.getState(ACTIVE_EPISODE)) {
@@ -1987,7 +1952,6 @@ window.addEventListener("load", () => {
             case 'Favorite Episodes':
               episodeListPage(this.$router, selected.text, null, {
                 'Podcast Info': (episode) => {
-                  // console.log(selected.text, 'Podcast Info', episode.feedId);
                   this.$router.showLoading();
                   podcastIndex.getFeed(episode.feedId)
                   .then((result) => {
