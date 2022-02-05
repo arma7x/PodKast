@@ -18,29 +18,29 @@
       justify-content: center;
       align-items: center;
     }
-    .thumb {
+    .thumbx {
       border-radius:5px;
     }
-    .thumb_buffering {
+    .thumbx_buffering {
       border-radius: 5px;
       position: absolute;
     }
     @media only screen and (orientation : portrait) {
-      .thumb {
+      .thumbx {
         height: 100px;
         width: 100px;
       }
-      .thumb_buffering {
+      .thumbx_buffering {
         top: 0;
         left: 0px;
       }
     }
     @media screen and (orientation: landscape) {
-      .thumb {
+      .thumbx {
         height: 30px;
         width: 30px;
       }
-      .thumb_buffering {
+      .thumbx_buffering {
         top: 0;
         left: 0px;
       }
@@ -61,8 +61,8 @@
   <div class="kui-option-body kai-padding-5">
     <div class="block">
       <div style="position:relative;">
-        <img id="thumb_buffering" class="thumb thumb_buffering" src="/icons/loading.gif"/>
-        <img id="mini_thumb" class="thumb" src="/icons/loading.gif"/>
+        <img id="thumb_buffering" class="thumbx thumbx_buffering" src="/icons/loading.gif"/>
+        <img id="mini_thumb" class="thumbx" src="/icons/loading.gif"/>
       </div>
       <pre class="mini_title">{{ episode.title }}</pre>
     </div>
