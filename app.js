@@ -1527,7 +1527,6 @@ window.addEventListener("load", () => {
         MAIN_DURATION_SLIDER.value = evt.target.currentTime;
         MAIN_DURATION_SLIDER.setAttribute("max", evt.target.duration);
         MAIN_PLAY_BTN.src = '/icons/pause.png';
-        console.log('ontimeupdate');
         if (MAIN_PLAYER.buffered.length > 0) {
           console.log("Start: " + MAIN_PLAYER.buffered.start(0) + " End: "  + MAIN_PLAYER.buffered.end(MAIN_PLAYER.buffered.length - 1));
         }
@@ -1539,16 +1538,12 @@ window.addEventListener("load", () => {
         MAIN_PLAY_BTN.src = '/icons/pause.png';
       },
       onseeking: function(evt) {
-        console.log('onseeking');
-        if (MAIN_PLAYER.buffered.length > 0) {
-          console.log("Start: " + MAIN_PLAYER.buffered.start(0) + " End: "  + MAIN_PLAYER.buffered.end(MAIN_PLAYER.buffered.length - 1));
-        }
+        console.log('start onseeking', evt.target.currentTime);
+        MAIN_CURRENT_TIME.innerHTML = convertTime(evt.target.currentTime);
+        MAIN_DURATION_SLIDER.value = evt.target.currentTime;
       },
       onseeked: function(evt) {
-        console.log('onseeked');
-        if (MAIN_PLAYER.buffered.length > 0) {
-          console.log("Start: " + MAIN_PLAYER.buffered.start(0) + " End: "  + MAIN_PLAYER.buffered.end(MAIN_PLAYER.buffered.length - 1));
-        }
+        console.log('end onseeked', evt.target.currentTime);
       },
       togglePlayIcon: function() {
         if (MAIN_PLAYER.duration > 0 && !MAIN_PLAYER.paused) {
@@ -1819,13 +1814,13 @@ window.addEventListener("load", () => {
         volumeUp(MAIN_PLAYER);
       },
       arrowRight: function() {
-        MAIN_PLAYER.fastSeek(MAIN_PLAYER.currentTime + 10);
+        MAIN_PLAYER.fastSeek(MAIN_PLAYER.currentTime + 60);
       },
       arrowDown: function() {
         volumeDown(MAIN_PLAYER);
       },
       arrowLeft: function() {
-        MAIN_PLAYER.fastSeek(MAIN_PLAYER.currentTime - 10);
+        MAIN_PLAYER.fastSeek(MAIN_PLAYER.currentTime - 60);
       },
     }
   });
