@@ -5,6 +5,7 @@ var MAIN_DURATION;
 var MAIN_THUMB;
 var MAIN_TITLE;
 var MAIN_PLAY_BTN;
+var MAIN_THUMB_BUFF;
 const APP_VERSION = '1.0.0';
 const KEY = 'PODCASTINDEX_KEY';
 const SECRET = 'PODCASTINDEX_SECRET';
@@ -368,8 +369,9 @@ window.addEventListener("load", () => {
     // console.log(state.getState(ACTIVE_PODCAST), state.getState(ACTIVE_EPISODE), episode, playable);
     MINI_PLAYER.src = '';
     MINI_PLAYER.pause();
-    MINI_PLAYER.currentTime = 0;
+    MINI_PLAYER.fastSeek(0);
     MAIN_PLAYER.src = episode['enclosureUrl'];
+    MAIN_PLAYER.fastSeek(episode['podkastLastDuration']);
     MAIN_PLAYER.play();
     T_PODCASTS.getItem(episode['feedId'].toString())
     .then((savedPodcast) => {
@@ -389,7 +391,7 @@ window.addEventListener("load", () => {
     delete episode['podkastBookmark'];
     delete episode['podkastPlaying'];
     delete episode['podkastCursor'];
-    // console.log(episode);
+    console.log(episode);
     return T_EPISODES.getItem(episode['feedId'].toString())
     .then((episodesObj) => {
       if (episodesObj == null) {
@@ -864,6 +866,7 @@ window.addEventListener("load", () => {
             MINI_PLAYER.addEventListener('pause', this.methods.onpause);
             MINI_PLAYER.addEventListener('play', this.methods.onplay);
             MINI_PLAYER.src = episode['enclosureUrl'];
+            MINI_PLAYER.fastSeek(episode['podkastLastDuration']);
             MINI_PLAYER.play();
           }, 100);
         },
@@ -874,7 +877,7 @@ window.addEventListener("load", () => {
           MINI_PLAYER.removeEventListener('play', this.methods.onplay);
           MINI_PLAYER.src = '';
           MINI_PLAYER.pause();
-          MINI_PLAYER.currentTime = 0;
+          MINI_PLAYER.fastSeek(0);
           setTimeout(() => {
             cb();
             state.setState(TABLE_BOOKMARKED, state.getState(TABLE_BOOKMARKED));
@@ -1449,6 +1452,7 @@ window.addEventListener("load", () => {
       MAIN_THUMB = document.getElementById('main_thumb');
       MAIN_TITLE = document.getElementById('main_title');
       MAIN_PLAY_BTN = document.getElementById('main_play_btn');
+      MAIN_THUMB_BUFF = document.getElementById('thumb_buffering');
       MAIN_CURRENT_TIME.innerHTML = convertTime(MAIN_PLAYER.currentTime);
       this.$state.addStateListener(ACTIVE_PODCAST, this.methods.activePodcastState);
       this.methods.activePodcastState(this.$state.getState(ACTIVE_PODCAST));
@@ -1482,13 +1486,16 @@ window.addEventListener("load", () => {
     methods: {
       activePodcastState: function(podcastId) {
         const img = MAIN_THUMB;
-        if (img == null)
-          return;
-        if (podcastId == null || podcastId == false) {
+        MAIN_THUMB_BUFF.style.visibility = 'visible';
+        if (img == null || podcastId == null || podcastId == false) {
+          MAIN_THUMB_BUFF.style.visibility = 'hidden';
           img.src = '/icons/icon112x112.png';
           return;
         }
-        img.src = '/icons/loading.gif';
+        img.onload = () => {
+          if (img.complete)
+            MAIN_THUMB_BUFF.style.visibility = 'hidden';
+        }
         T_PODCASTS.getItem(podcastId.toString())
         .then((podcast) => {
           if (podcast['image'] == null || podcast['image'] == '')
@@ -1538,12 +1545,12 @@ window.addEventListener("load", () => {
         MAIN_PLAY_BTN.src = '/icons/pause.png';
       },
       onseeking: function(evt) {
-        console.log('start onseeking', evt.target.currentTime);
+        MAIN_THUMB_BUFF.style.visibility = 'visible';
         MAIN_CURRENT_TIME.innerHTML = convertTime(evt.target.currentTime);
         MAIN_DURATION_SLIDER.value = evt.target.currentTime;
       },
       onseeked: function(evt) {
-        console.log('end onseeked', evt.target.currentTime);
+        MAIN_THUMB_BUFF.style.visibility = 'hidden';
       },
       togglePlayIcon: function() {
         if (MAIN_PLAYER.duration > 0 && !MAIN_PLAYER.paused) {
