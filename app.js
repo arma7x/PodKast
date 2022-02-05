@@ -2,6 +2,9 @@ var BOOT = false;
 var MAIN_DURATION_SLIDER;
 var MAIN_CURRENT_TIME;
 var MAIN_DURATION;
+var MAIN_THUMB;
+var MAIN_TITLE;
+var MAIN_PLAY_BTN;
 const APP_VERSION = '1.0.0';
 const KEY = 'PODCASTINDEX_KEY';
 const SECRET = 'PODCASTINDEX_SECRET';
@@ -1440,6 +1443,13 @@ window.addEventListener("load", () => {
         window.localStorage.setItem('APP_VERSION', APP_VERSION);
         return;
       }
+      MAIN_DURATION_SLIDER = document.getElementById('main_duration_slider');
+      MAIN_CURRENT_TIME = document.getElementById('main_current_time');
+      MAIN_DURATION = document.getElementById('main_duration');
+      MAIN_THUMB = document.getElementById('main_thumb');
+      MAIN_TITLE = document.getElementById('main_title');
+      MAIN_PLAY_BTN = document.getElementById('main_play_btn');
+      MAIN_CURRENT_TIME.innerHTML = convertTime(MAIN_PLAYER.currentTime);
       this.$state.addStateListener(ACTIVE_PODCAST, this.methods.activePodcastState);
       this.methods.activePodcastState(this.$state.getState(ACTIVE_PODCAST));
       this.$state.addStateListener(ACTIVE_EPISODE, this.methods.ActiveEpisodeState);
@@ -1448,11 +1458,8 @@ window.addEventListener("load", () => {
       MAIN_PLAYER.addEventListener('timeupdate', this.methods.ontimeupdate);
       MAIN_PLAYER.addEventListener('pause', this.methods.onpause);
       MAIN_PLAYER.addEventListener('play', this.methods.onplay);
-      MAIN_PLAYER.addEventListener('progress', this.methods.onprogress);
-      MAIN_DURATION_SLIDER = document.getElementById('main_duration_slider');
-      MAIN_CURRENT_TIME = document.getElementById('main_current_time');
-      MAIN_DURATION = document.getElementById('main_duration');
-      MAIN_CURRENT_TIME.innerHTML = convertTime(MAIN_PLAYER.currentTime);
+      MAIN_PLAYER.addEventListener('seeking', this.methods.onseeking);
+      MAIN_PLAYER.addEventListener('seeked', this.methods.onseeked);
       MAIN_DURATION.innerHTML = convertTime(MAIN_PLAYER.duration);
       MAIN_DURATION_SLIDER.value = MAIN_PLAYER.currentTime;
       MAIN_DURATION_SLIDER.setAttribute("max", MAIN_PLAYER.duration);
@@ -1469,11 +1476,12 @@ window.addEventListener("load", () => {
       MAIN_PLAYER.removeEventListener('timeupdate', this.methods.ontimeupdate);
       MAIN_PLAYER.removeEventListener('pause', this.methods.onpause);
       MAIN_PLAYER.removeEventListener('play', this.methods.onplay);
-      MAIN_PLAYER.removeEventListener('progress', this.methods.onprogress);
+      MAIN_PLAYER.removeEventListener('seeking', this.methods.onseeking);
+      MAIN_PLAYER.removeEventListener('seeked', this.methods.onseeked);
     },
     methods: {
       activePodcastState: function(podcastId) {
-        const img = document.getElementById('main_thumb');
+        const img = MAIN_THUMB;
         if (img == null)
           return;
         if (podcastId == null || podcastId == false) {
@@ -1495,7 +1503,7 @@ window.addEventListener("load", () => {
         });
       },
       ActiveEpisodeState: function(episodeId) {
-        const title = document.getElementById('main_title');
+        const title = MAIN_TITLE;
         if (title == null)
           return;
         if (episodeId == null || episodeId == false) {
@@ -1518,21 +1526,35 @@ window.addEventListener("load", () => {
         MAIN_DURATION.innerHTML = convertTime(evt.target.duration);
         MAIN_DURATION_SLIDER.value = evt.target.currentTime;
         MAIN_DURATION_SLIDER.setAttribute("max", evt.target.duration);
+        MAIN_PLAY_BTN.src = '/icons/pause.png';
+        console.log('ontimeupdate');
+        if (MAIN_PLAYER.buffered.length > 0) {
+          console.log("Start: " + MAIN_PLAYER.buffered.start(0) + " End: "  + MAIN_PLAYER.buffered.end(MAIN_PLAYER.buffered.length - 1));
+        }
       },
       onpause: function() {
-        document.getElementById('main_play_btn').src = '/icons/play.png';
+        MAIN_PLAY_BTN.src = '/icons/play.png';
       },
       onplay: function() {
-        document.getElementById('main_play_btn').src = '/icons/pause.png';
+        MAIN_PLAY_BTN.src = '/icons/pause.png';
       },
-      onprogress: function(evt) {
-        console.log('onprogress', evt);
+      onseeking: function(evt) {
+        console.log('onseeking');
+        if (MAIN_PLAYER.buffered.length > 0) {
+          console.log("Start: " + MAIN_PLAYER.buffered.start(0) + " End: "  + MAIN_PLAYER.buffered.end(MAIN_PLAYER.buffered.length - 1));
+        }
+      },
+      onseeked: function(evt) {
+        console.log('onseeked');
+        if (MAIN_PLAYER.buffered.length > 0) {
+          console.log("Start: " + MAIN_PLAYER.buffered.start(0) + " End: "  + MAIN_PLAYER.buffered.end(MAIN_PLAYER.buffered.length - 1));
+        }
       },
       togglePlayIcon: function() {
         if (MAIN_PLAYER.duration > 0 && !MAIN_PLAYER.paused) {
-          document.getElementById('main_play_btn').src = '/icons/pause.png';
+          MAIN_PLAY_BTN.src = '/icons/pause.png';
         } else {
-          document.getElementById('main_play_btn').src = '/icons/play.png';
+          MAIN_PLAY_BTN.src = '/icons/play.png';
         }
       },
       resumePodcast: function() {
@@ -1797,13 +1819,13 @@ window.addEventListener("load", () => {
         volumeUp(MAIN_PLAYER);
       },
       arrowRight: function() {
-        // this.navigateTabNav(-1);
+        MAIN_PLAYER.fastSeek(MAIN_PLAYER.currentTime + 10);
       },
       arrowDown: function() {
         volumeDown(MAIN_PLAYER);
       },
       arrowLeft: function() {
-        // this.navigateTabNav(1);
+        MAIN_PLAYER.fastSeek(MAIN_PLAYER.currentTime - 10);
       },
     }
   });
