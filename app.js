@@ -1487,12 +1487,13 @@ window.addEventListener("load", () => {
       MAIN_PLAYER.addEventListener('play', this.methods.onplay);
       MAIN_PLAYER.addEventListener('seeking', this.methods.onseeking);
       MAIN_PLAYER.addEventListener('seeked', this.methods.onseeked);
+      MAIN_PLAYER.addEventListener('ratechange', this.methods.onratechange);
       document.addEventListener('keydown', this.methods.onKeydown);
       MAIN_DURATION.innerHTML = convertTime(MAIN_PLAYER.duration);
       MAIN_DURATION_SLIDER.value = MAIN_PLAYER.currentTime;
       MAIN_DURATION_SLIDER.setAttribute("max", MAIN_PLAYER.duration);
       this.methods.togglePlayIcon();
-      this.methods.renderCenterKeyText();
+      this.methods.onratechange();
       if (this.$state.getState(AUTOPLAY) && BOOT == false && this.$state.getState(ACTIVE_PODCAST) && this.$state.getState(ACTIVE_EPISODE)) {
         this.methods.resumePodcast();
       }
@@ -1507,6 +1508,7 @@ window.addEventListener("load", () => {
       MAIN_PLAYER.removeEventListener('play', this.methods.onplay);
       MAIN_PLAYER.removeEventListener('seeking', this.methods.onseeking);
       MAIN_PLAYER.removeEventListener('seeked', this.methods.onseeked);
+      MAIN_PLAYER.removeEventListener('ratechange', this.methods.onratechange);
       document.removeEventListener('keydown', this.methods.onKeydown);
     },
     methods: {
@@ -1578,6 +1580,9 @@ window.addEventListener("load", () => {
       onseeked: function(evt) {
         MAIN_THUMB_BUFF.style.visibility = 'hidden';
       },
+      onratechange: function() {
+        this.$router.setSoftKeyCenterText(`${MAIN_PLAYER.playbackRate}x`);
+      },
       onKeydown: function(evt) {
         if (MAIN_PLAYER.duration <= 0)
           return;
@@ -1625,17 +1630,17 @@ window.addEventListener("load", () => {
             if (MAIN_PLAYER.playbackRate >= 4)
               return
             MAIN_PLAYER.playbackRate += 0.25;
-            this.methods.renderCenterKeyText();
+            //this.methods.onratechange();
             break;
           case '5':
             MAIN_PLAYER.playbackRate = 1;
-            this.methods.renderCenterKeyText();
+            //this.methods.onratechange();
             break;
           case '8':
             if (MAIN_PLAYER.playbackRate <= 0.5)
               return
             MAIN_PLAYER.playbackRate -= 0.25;
-            this.methods.renderCenterKeyText();
+            //this.methods.onratechange();
             break;
         }
       },
@@ -1653,9 +1658,6 @@ window.addEventListener("load", () => {
             playPodcast(this.$router, JSON.parse(JSON.stringify(episodes[this.$state.getState(ACTIVE_EPISODE)])));
           }
         });
-      },
-      renderCenterKeyText: function() {
-        this.$router.setSoftKeyCenterText(`${MAIN_PLAYER.playbackRate}x`);
       },
       showInputDialog: function(title, placeholder, cb = () => {}) {
         const searchDialog = Kai.createDialog(title, `<div><input id="keyword-input" type="text" placeholder="${placeholder}" class="kui-input"/></div>`, null, '', undefined, '', undefined, '', undefined, undefined, this.$router);
