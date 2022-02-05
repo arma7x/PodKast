@@ -724,7 +724,7 @@ window.addEventListener("load", () => {
     delete episode['podkastBookmark'];
     delete episode['podkastPlaying'];
     delete episode['podkastCursor'];
-    const URL = 'https://www.audiocheck.net/Audio/audiocheck.net_C.ogg'; // episode['enclosureUrl']
+    const URL = episode['enclosureUrl'];
     return new Promise((resolve, reject) => {
       var BAR, CUR, MAX;
       var start = 0;
