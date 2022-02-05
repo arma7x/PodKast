@@ -1630,17 +1630,14 @@ window.addEventListener("load", () => {
             if (MAIN_PLAYER.playbackRate >= 4)
               return
             MAIN_PLAYER.playbackRate += 0.25;
-            //this.methods.onratechange();
             break;
           case '5':
             MAIN_PLAYER.playbackRate = 1;
-            //this.methods.onratechange();
             break;
           case '8':
             if (MAIN_PLAYER.playbackRate <= 0.5)
               return
             MAIN_PLAYER.playbackRate -= 0.25;
-            //this.methods.onratechange();
             break;
         }
       },
