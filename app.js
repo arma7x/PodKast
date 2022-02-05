@@ -492,22 +492,15 @@ window.addEventListener("load", () => {
             req.onreadystatechange = function() {
               if (req.readyState == 4) {
                 if (req.status >= 200 && req.status <= 399) {
-                  const tempURL = window.URL.createObjectURL(req.response);
-                  resizeImage(tempURL)
+                  TABLE_SRC.setItem(id, req.response)
                   .then((imgBlob) => {
-                    return TABLE_SRC.setItem(id, imgBlob);
-                  })
-                  .then((image) => {
-                    const blobURL = window.URL.createObjectURL(image);
+                    const blobURL = window.URL.createObjectURL(imgBlob);
                     thumbHash[id] = blobURL;
                     resolve(blobURL);
                   }).catch((err) => {
                     const localURL = '/icons/icon112x112.png';
                     thumbHash[id] = localURL;
                     resolve(localURL);
-                  })
-                  .finally(() => {
-                    URL.revokeObjectURL(tempURL);
                   });
                 } else {
                   const localURL = '/icons/icon112x112.png';
@@ -519,7 +512,7 @@ window.addEventListener("load", () => {
             req.open('GET', url, true);
             req.send();
           } else {
-            var blobURL;;
+            var blobURL;
             if (blob instanceof Blob) {
               blobURL = window.URL.createObjectURL(blob);
             } else if (blob instanceof ArrayBuffer) {
