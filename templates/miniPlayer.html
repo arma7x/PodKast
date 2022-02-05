@@ -12,11 +12,58 @@
       text-overflow: ellipsis;
       text-align: center;
     }
+    .block {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+    .thumb {
+      border-radius:5px;
+    }
+    .thumb_buffering {
+      border-radius: 5px;
+      position: absolute;
+    }
+    @media only screen and (orientation : portrait) {
+      .thumb {
+        height: 100px;
+        width: 100px;
+      }
+      .thumb_buffering {
+        top: 0;
+        left: 0px;
+      }
+    }
+    @media screen and (orientation: landscape) {
+      .thumb {
+        height: 30px;
+        width: 30px;
+      }
+      .thumb_buffering {
+        top: 0;
+        left: 0px;
+      }
+      .block {
+        display: flex;
+        flex-direction: row;
+        justify-content: flex-start;
+        align-items: center;
+      }
+      pre.mini_title {
+        margin: -6px 0px 0px 5px;
+        width: 275px;
+        text-align: left;
+      }
+    }
   </style>
   <div class="kui-option-title" style="overflow:hidden;">{{ episode.feedTitle }}</div>
   <div class="kui-option-body kai-padding-5">
-    <div style="display:flex;flex-direction:column;justify-content:center;align-items:center;">
-      <img id="mini_thumb" style="border-radius:5px;" height="100px" width="100px" src="/icons/loading.gif"/>
+    <div class="block">
+      <div style="position:relative;">
+        <img id="thumb_buffering" class="thumb thumb_buffering" src="/icons/loading.gif"/>
+        <img id="mini_thumb" class="thumb" src="/icons/loading.gif"/>
+      </div>
       <pre class="mini_title">{{ episode.title }}</pre>
     </div>
     <div>
@@ -24,6 +71,7 @@
     </div>
     <div class="kui-row-center">
       <div id="mini_current_time">00:00</div>
+      <img id="mini_play_btn" width="36px" height="36px" src="/icons/play.png"/>
       <div id="mini_duration">00:00</div>
     </div>
   </div>

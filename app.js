@@ -374,6 +374,7 @@ window.addEventListener("load", () => {
 
   const playPodcast = function($router, episode, playable = true) {
     const loadedmetadata = () => {
+      console.log('PODCAST RESUME:', episode['podkastLastDuration']);
       MAIN_PLAYER.fastSeek(episode['podkastLastDuration']);
       MINI_PLAYER.removeEventListener('loadedmetadata', loadedmetadata);
     }
@@ -408,7 +409,7 @@ window.addEventListener("load", () => {
     delete episode['podkastBookmark'];
     delete episode['podkastPlaying'];
     delete episode['podkastCursor'];
-    console.log(episode);
+    // console.log(episode);
     return T_EPISODES.getItem(episode['feedId'].toString())
     .then((episodesObj) => {
       if (episodesObj == null) {
@@ -419,10 +420,11 @@ window.addEventListener("load", () => {
         console.log('Podcast Ep !Cached:', episode['feedId'], episode['id']);
         tempEpisode = {};
         tempEpisode['podkastLocalPath'] = episode['podkastLocalPath'] || false;
-        tempEpisode['podkastLastDuration'] = episode['podkastLastDuration'] || false;
+        tempEpisode['podkastLastDuration'] = episode['podkastLastDuration'] || 0;
+        tempEpisode = Object.assign(episode, tempEpisode);
       }
-      tempEpisode = Object.assign(tempEpisode, episode);
       episodesObj[episode['id']] = tempEpisode;
+      console.log(episodesObj[episode['id']]);
       T_EPISODES.setItem(episode['feedId'].toString(), episodesObj);
       if (playable)
         miniPlayer(router, episodesObj[episode['id']], cb);
@@ -451,7 +453,7 @@ window.addEventListener("load", () => {
           episodes.push({
             id: sha1(btoa(enclosureUrl + date.toString())),
             title: item.getElementsByTagName("title")[0].childNodes[0].nodeValue,
-            description: desc.length > 0 ? desc[0].textContent.trim() : false,
+            description: desc.length > 0 ? desc[0].textContent.trim() : '',
             date: date,
             pubDate: item.getElementsByTagName("pubDate")[0].childNodes[0].nodeValue,
             enclosureUrl: enclosureUrl,
@@ -835,7 +837,7 @@ window.addEventListener("load", () => {
   const miniPlayer = function($router, episode, cb = () => {}) {
     // feedTitle title enclosureUrl
     // console.log(episode);
-    var DURATION_SLIDER, CURRENT_TIME, DURATION;
+    var MINI_THUMB, DURATION_SLIDER, CURRENT_TIME, DURATION, PLAY_BUTTON, THUMB_BUFF;
     $router.showBottomSheet(
       new Kai({
         name: 'miniPlayer',
@@ -859,39 +861,57 @@ window.addEventListener("load", () => {
           right: function() {}
         },
         mounted: function() {
+          MINI_THUMB = document.getElementById('mini_thumb');
+          DURATION_SLIDER = document.getElementById('mini_duration_slider');
+          CURRENT_TIME = document.getElementById('mini_current_time');
+          DURATION = document.getElementById('mini_duration');
+          PLAY_BTN = document.getElementById('mini_play_btn');
+          THUMB_BUFF = document.getElementById('thumb_buffering');
+          THUMB_BUFF.style.visibility = 'visible';
           if (episode['feedImage'] == null || episode['feedImage'] == '')
             episode['feedImage'] = '/icons/icon112x112.png';
           if (episode['image'] == null || episode['image'] == '')
             episode['image'] = episode['feedImage'];
           getThumb(episode['image'])
           .then((url) => {
-            const img = document.getElementById('mini_thumb');
+            const img = MINI_THUMB;
+            img.onload = () => {
+              if (img.complete)
+                THUMB_BUFF.style.visibility = 'hidden';
+            }
             if (img != null) {
               img.src = url;
+            } else {
+              img.src = '/icons/icon112x112.png';
             }
           })
           .catch((err) => {
             console.log(err);
           });
-          setTimeout(() => {
-            MAIN_PLAYER.pause();
-            DURATION_SLIDER = document.getElementById('mini_duration_slider');
-            CURRENT_TIME = document.getElementById('mini_current_time');
-            DURATION = document.getElementById('mini_duration');
-            MINI_PLAYER.addEventListener('loadedmetadata', this.methods.onloadedmetadata);
-            MINI_PLAYER.addEventListener('timeupdate', this.methods.ontimeupdate);
-            MINI_PLAYER.addEventListener('pause', this.methods.onpause);
-            MINI_PLAYER.addEventListener('play', this.methods.onplay);
-            MINI_PLAYER.src = episode['enclosureUrl'];
-            MINI_PLAYER.fastSeek(episode['podkastLastDuration']);
-            MINI_PLAYER.play();
-          }, 100);
+          MAIN_PLAYER.pause();
+          MINI_PLAYER.addEventListener('loadedmetadata', this.methods.onloadedmetadata);
+          MINI_PLAYER.addEventListener('timeupdate', this.methods.ontimeupdate);
+          MINI_PLAYER.addEventListener('pause', this.methods.onpause);
+          MINI_PLAYER.addEventListener('play', this.methods.onplay);
+          MINI_PLAYER.addEventListener('seeking', this.methods.onseeking);
+          MINI_PLAYER.addEventListener('seeked', this.methods.onseeked);
+          MINI_PLAYER.addEventListener('ratechange', this.methods.onratechange);
+          MINI_PLAYER.addEventListener('error', this.methods.onerror);
+          document.addEventListener('keydown', this.methods.onKeydown);
+          MINI_PLAYER.src = episode['enclosureUrl'];
+          MINI_PLAYER.play();
+          this.methods.onratechange();
         },
         unmounted: function() {
           MINI_PLAYER.removeEventListener('loadedmetadata', this.methods.onloadedmetadata);
           MINI_PLAYER.removeEventListener('timeupdate', this.methods.ontimeupdate);
           MINI_PLAYER.removeEventListener('pause', this.methods.onpause);
           MINI_PLAYER.removeEventListener('play', this.methods.onplay);
+          MINI_PLAYER.removeEventListener('seeking', this.methods.onseeking);
+          MINI_PLAYER.removeEventListener('seeked', this.methods.onseeked);
+          MINI_PLAYER.removeEventListener('ratechange', this.methods.onratechange);
+          MINI_PLAYER.removeEventListener('error', this.methods.onerror);
+          document.removeEventListener('keydown', this.methods.onKeydown);
           MINI_PLAYER.src = '';
           MINI_PLAYER.pause();
           MINI_PLAYER.fastSeek(0);
@@ -902,6 +922,7 @@ window.addEventListener("load", () => {
         },
         methods: {
           onloadedmetadata: function(evt) {
+            MINI_PLAYER.fastSeek(episode['podkastLastDuration']);
             var duration = evt.target.duration;
             DURATION.innerHTML = convertTime(evt.target.duration);
             DURATION_SLIDER.setAttribute("max", duration);
@@ -910,26 +931,111 @@ window.addEventListener("load", () => {
             var currentTime = evt.target.currentTime;
             CURRENT_TIME.innerHTML = convertTime(evt.target.currentTime);
             DURATION_SLIDER.value = currentTime;
+            PLAY_BTN.src = '/icons/pause.png';
+            T_EPISODES.getItem(episode['feedId'].toString())
+            .then((episodes) => {
+              if (episodes != null && episodes[episode['id']] != null) {
+                const update = episodes[episode['id']];
+                update['podkastLastDuration'] = evt.target.currentTime;
+                episodes[episode['id']] = update;
+                T_EPISODES.setItem(episode['feedId'].toString(), episodes);
+              }
+            })
+            .catch((err) => {
+              console.log(err);
+            });
           },
           onpause: function() {
-            $router.setSoftKeyCenterText('PLAY');
+            PLAY_BTN.src = '/icons/play.png';
           },
           onplay: function() {
-            $router.setSoftKeyCenterText('PAUSE');
-          }
+            PLAY_BTN.src = '/icons/pause.png';
+          },
+          onseeking: function(evt) {
+            THUMB_BUFF.style.visibility = 'visible';
+            CURRENT_TIME.innerHTML = convertTime(evt.target.currentTime);
+            DURATION_SLIDER.value = evt.target.currentTime;
+          },
+          onseeked: function(evt) {
+            THUMB_BUFF.style.visibility = 'hidden';
+          },
+          onratechange: function() {
+            $router.setSoftKeyCenterText(`${MINI_PLAYER.playbackRate}x`);
+          },
+          onerror: function (evt) {
+            $router.showToast(evt.toString());
+          },
+          onKeydown: function(evt) {
+            if (MINI_PLAYER.duration <= 0)
+              return;
+            switch(evt.key) {
+              case 'Call':
+                MINI_PLAYER.fastSeek(0);
+                break;
+              case '1':
+                var time = MINI_PLAYER.currentTime - 30;
+                if (time <= 0)
+                  time = 0;
+                MINI_PLAYER.fastSeek(time);
+                break;
+              case '3':
+                var time = MINI_PLAYER.currentTime + 30;
+                if (time >= MINI_PLAYER.duration)
+                  time = MINI_PLAYER.duration;
+                MINI_PLAYER.fastSeek(time);
+                break;
+              case '4':
+                var time = MINI_PLAYER.currentTime - 60;
+                if (time <= 0)
+                  time = 0;
+                MINI_PLAYER.fastSeek(time);
+                break;
+              case '6':
+                var time = MINI_PLAYER.currentTime + 60;
+                if (time >= MINI_PLAYER.duration)
+                  time = MINI_PLAYER.duration;
+                MINI_PLAYER.fastSeek(time);
+                break;
+              case '7':
+                var time = MINI_PLAYER.currentTime - (0.01 * MINI_PLAYER.duration);
+                if (time <= 0)
+                  time = 0;
+                MINI_PLAYER.fastSeek(time);
+                break;
+              case '9':
+                var time = MINI_PLAYER.currentTime + (0.01 * MINI_PLAYER.duration);
+                if (time >= MINI_PLAYER.duration)
+                  time = MINI_PLAYER.duration;
+                MINI_PLAYER.fastSeek(time);
+                break;
+              case '2':
+                if (MINI_PLAYER.playbackRate >= 4)
+                  return
+                MINI_PLAYER.playbackRate += 0.25;
+                break;
+              case '5':
+                MINI_PLAYER.playbackRate = 1;
+                break;
+              case '8':
+                if (MINI_PLAYER.playbackRate <= 0.5)
+                  return
+                MINI_PLAYER.playbackRate -= 0.25;
+                break;
+            }
+          },
         },
         dPadNavListener: {
           arrowUp: function() {
             volumeUp(MINI_PLAYER);
           },
           arrowRight: function() {
-            // fast-forward
+            MINI_PLAYER.fastSeek(MINI_PLAYER.currentTime + 10);
           },
           arrowDown: function() {
             volumeDown(MINI_PLAYER);
           },
           arrowLeft: function() {
-            // rewind
+            MINI_PLAYER.fastSeek(MINI_PLAYER.currentTime - 10);
           },
         },
         backKeyListener: function(evt) {
@@ -1488,6 +1594,7 @@ window.addEventListener("load", () => {
       MAIN_PLAYER.addEventListener('seeking', this.methods.onseeking);
       MAIN_PLAYER.addEventListener('seeked', this.methods.onseeked);
       MAIN_PLAYER.addEventListener('ratechange', this.methods.onratechange);
+      MAIN_PLAYER.addEventListener('error', this.methods.onerror);
       document.addEventListener('keydown', this.methods.onKeydown);
       MAIN_DURATION.innerHTML = convertTime(MAIN_PLAYER.duration);
       MAIN_DURATION_SLIDER.value = MAIN_PLAYER.currentTime;
@@ -1509,13 +1616,16 @@ window.addEventListener("load", () => {
       MAIN_PLAYER.removeEventListener('seeking', this.methods.onseeking);
       MAIN_PLAYER.removeEventListener('seeked', this.methods.onseeked);
       MAIN_PLAYER.removeEventListener('ratechange', this.methods.onratechange);
+      MAIN_PLAYER.addEventListener('error', this.methods.onerror);
       document.removeEventListener('keydown', this.methods.onKeydown);
     },
     methods: {
       activePodcastState: function(podcastId) {
         const img = MAIN_THUMB;
+        if (img == null)
+          return;
         MAIN_THUMB_BUFF.style.visibility = 'visible';
-        if (img == null || podcastId == null || podcastId == false) {
+        if (podcastId == null || podcastId == false) {
           MAIN_THUMB_BUFF.style.visibility = 'hidden';
           img.src = '/icons/icon112x112.png';
           return;
@@ -1582,6 +1692,9 @@ window.addEventListener("load", () => {
       },
       onratechange: function() {
         this.$router.setSoftKeyCenterText(`${MAIN_PLAYER.playbackRate}x`);
+      },
+      onerror: function (evt) {
+        this.$router.showToast(evt.toString());
       },
       onKeydown: function(evt) {
         if (MAIN_PLAYER.duration <= 0)
