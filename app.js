@@ -494,9 +494,13 @@ window.addEventListener("load", () => {
                 if (req.status >= 200 && req.status <= 399) {
                   TABLE_SRC.setItem(id, req.response)
                   .then((imgBlob) => {
-                    const blobURL = window.URL.createObjectURL(imgBlob);
-                    thumbHash[id] = blobURL;
-                    resolve(blobURL);
+                    if (thumbHash[id] == null) {
+                      const blobURL = window.URL.createObjectURL(imgBlob);
+                      thumbHash[id] = blobURL;
+                      resolve(blobURL);
+                    } else {
+                      resolve(thumbHash[id]);
+                    }
                   }).catch((err) => {
                     const localURL = '/icons/icon112x112.png';
                     thumbHash[id] = localURL;
