@@ -760,9 +760,6 @@ window.addEventListener("load", () => {
             req.onerror = this.methods.onerror;
             start = new Date().getTime();
             req.send();
-            setTimeout(() => {
-              req.abort();
-            }, 10000);
           },
           unmounted: function() {
             resolve(episode);
