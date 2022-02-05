@@ -1557,9 +1557,9 @@ window.addEventListener("load", () => {
         MAIN_DURATION_SLIDER.value = evt.target.currentTime;
         MAIN_DURATION_SLIDER.setAttribute("max", evt.target.duration);
         MAIN_PLAY_BTN.src = '/icons/pause.png';
-        if (MAIN_PLAYER.buffered.length > 0) {
-          console.log("Start: " + MAIN_PLAYER.buffered.start(0) + " End: "  + MAIN_PLAYER.buffered.end(MAIN_PLAYER.buffered.length - 1));
-        }
+        //if (MAIN_PLAYER.buffered.length > 0) {
+        //  console.log("Start: " + MAIN_PLAYER.buffered.start(0) + " End: "  + MAIN_PLAYER.buffered.end(MAIN_PLAYER.buffered.length - 1));
+        //}
       },
       onpause: function() {
         MAIN_PLAY_BTN.src = '/icons/play.png';
