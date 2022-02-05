@@ -952,7 +952,7 @@ window.addEventListener("load", () => {
         methods: {
           gotoPage: function(cur) {
             this.setData({
-              // init: false,
+              init: false,
               list: this.data.pages[cur],
               pageCursor: cur,
             });
@@ -990,7 +990,7 @@ window.addEventListener("load", () => {
             T_PODCASTS.getItem(feedId.toString())
             .then((podcast) => {
               const cursor = podcast != null ? podcast['podkastCurrentEpisode'] : false;
-              // console.log('CURSOR:',cursor, episodeId);
+              // console.log('CURSOR:', cursor, episodeId);
               const pages = [];
               const temp = JSON.parse(JSON.stringify(data));
               while (temp.length > 0) {
@@ -1002,9 +1002,15 @@ window.addEventListener("load", () => {
                     if (ep['id'] === matchId) {
                       // console.log(pages.length - 1, idx, pages[pages.length - 1][idx]['podkastCursor']);
                       pages[pages.length - 1][idx]['podkastCursor'] = true;
-                      // this.data.init = false;
+                      this.data.init = false;
                       this.data.pageCursor = pages.length - 1;
                       this.verticalNavIndex = idx;
+                    }
+                  });
+                } else if (cursor) {
+                  pages[pages.length - 1].forEach((ep, idx) => {
+                    if (ep['id'] === cursor) {
+                      pages[pages.length - 1][idx]['podkastCursor'] = true;
                     }
                   });
                 }
