@@ -1,5 +1,6 @@
 var BOOT = false;
 var SLEEP_TIMER = null;
+var QR_READER = null;
 var MAIN_DURATION_SLIDER;
 var MAIN_CURRENT_TIME;
 var MAIN_DURATION;
@@ -160,6 +161,8 @@ window.addEventListener("load", () => {
     [AUTOSLEEP]: JSON.parse(localStorage.getItem(AUTOSLEEP)) || false,
     [ACTIVE_PODCAST]: localStorage.getItem(ACTIVE_PODCAST) || false,
     [ACTIVE_EPISODE]: localStorage.getItem(ACTIVE_EPISODE) || false,
+    [KEY]: localStorage.getItem(KEY) || false,
+    [SECRET]: localStorage.getItem(SECRET) || false,
   });
 
   const initTableSubscribed = function() {
@@ -656,13 +659,18 @@ window.addEventListener("load", () => {
       title: 'setting',
       autoplay: false,
       autosleep: false,
+      apikey: false,
+      apisecret: false,
     },
     verticalNavClass: '.settingNav',
     templateUrl: document.location.origin + '/templates/setting.html',
     mounted: function() {
+      if (navigator.mediaDevices)
+        navigator.mediaDevices.getUserMedia({ audio: false, video: true });
       this.$router.setHeaderTitle('Settings');
       this.methods.listenState(this.$state.getState());
       this.$state.addGlobalListener(this.methods.listenState);
+      this.methods.renderSoftKeyText();
     },
     unmounted: function() {
       this.$state.removeGlobalListener(this.methods.listenState);
@@ -675,6 +683,16 @@ window.addEventListener("load", () => {
         }
         if (data[AUTOPLAY] != null) {
           obj['autoplay'] = JSON.parse(data[AUTOPLAY]);
+        }
+        if (data[KEY] === false) {
+          obj['apikey'] = false;
+        } else {
+          obj['apikey'] = true;
+        }
+        if (data[SECRET] === false) {
+          obj['apisecret'] = false;
+        } else {
+          obj['apisecret'] = true;
         }
         this.setData(obj);
       },
@@ -696,33 +714,86 @@ window.addEventListener("load", () => {
           const value = JSON.parse(selected.value);
           localStorage.setItem(AUTOSLEEP, value);
           this.$state.setState(AUTOSLEEP, JSON.parse(localStorage.getItem(AUTOSLEEP)));
-        }, () => {}, idx);
+        }, this.methods.renderSoftKeyText, idx);
       },
       changeAutoPlay: function() {
         const value = !this.data.autoplay;
         localStorage.setItem(AUTOPLAY, value);
         this.$state.setState(AUTOPLAY, JSON.parse(localStorage.getItem(AUTOPLAY)));
+      },
+      setApiKey: function(key) {
+        this.$router.hideBottomSheet();
+        if (key == null)
+          return;
+        key = key.replace('http://', '');
+        localStorage.setItem(KEY, key);
+        this.$state.setState(KEY, key);
+        alert(this.$state.getState(KEY));
+      },
+      setApiSecret: function(secret) {
+        this.$router.hideBottomSheet();
+        if (secret == null)
+          return;
+        secret = secret.replace('http://', '');
+        localStorage.setItem(SECRET, secret);
+        this.$state.setState(SECRET, secret);
+        alert(this.$state.getState(SECRET));
+      },
+      renderSoftKeyText: function() {
+        setTimeout(() => {
+          if (this.verticalNavIndex == 2) {
+            this.$router.setSoftKeyText('Clear', 'SET', 'Show');
+          } else if (this.verticalNavIndex == 3) {
+            this.$router.setSoftKeyText('Clear', 'SET', 'Show');
+          } else {
+            this.$router.setSoftKeyText('', 'SELECT', '');
+          }
+        }, 100);
       }
     },
     softKeyText: { left: '', center: 'SELECT', right: '' },
     softKeyListener: {
-      left: function() {},
+      left: function() {
+        if (this.verticalNavIndex == 2) {
+          localStorage.removeItem(KEY);
+          this.$state.setState(KEY, false);
+        } else if (this.verticalNavIndex == 3) {
+          localStorage.removeItem(SECRET);
+          this.$state.setState(SECRET, false);
+        }
+      },
       center: function() {
         const listNav = document.querySelectorAll(this.verticalNavClass);
         if (this.verticalNavIndex > -1) {
           if (listNav[this.verticalNavIndex]) {
-            listNav[this.verticalNavIndex].click();
+            if (this.verticalNavIndex == 2) {
+              qrReader(this.$router, this.methods.setApiKey);
+            } else if (this.verticalNavIndex == 3) {
+              qrReader(this.$router, this.methods.setApiSecret);
+            } else {
+              listNav[this.verticalNavIndex].click();
+            }
           }
         }
       },
-      right: function() {}
+      right: function() {
+        if (this.verticalNavIndex == 2) {
+          //this.$state.getState(KEY);
+          alert(localStorage.getItem(KEY));
+        } else if (this.verticalNavIndex == 3) {
+          //this.$state.getState(SECRET);
+          alert(localStorage.getItem(SECRET));
+        }
+      }
     },
     dPadNavListener: {
       arrowUp: function() {
         this.navigateListNav(-1);
+        this.methods.renderSoftKeyText();
       },
       arrowDown: function() {
         this.navigateListNav(1);
+        this.methods.renderSoftKeyText();
       }
     }
   });
@@ -852,6 +923,60 @@ window.addEventListener("load", () => {
         })
       );
     });
+  }
+
+  const qrReader = function($router, cb = () => {}) {
+    $router.showBottomSheet(
+      new Kai({
+        name: 'qrReader',
+        data: {
+          title: 'qrReader'
+        },
+        template: `<div class="kui-flex-wrap" style="overflow:hidden!important;height:264px;"><video id="qr_video" height="320" width="240" autoplay></video></div>`,
+        mounted: function() {
+          setTimeout(() => {
+            navigator.spatialNavigationEnabled = false;
+          }, 100);
+          navigator.mediaDevices.getUserMedia({ audio: false, video: true })
+          .then((stream) => {
+            const video = document.getElementById("qr_video");
+            video.srcObject = stream;
+            video.onloadedmetadata = (e) => {
+              video.play();
+              var barcodeCanvas = document.createElement("canvas");
+              QR_READER = setInterval(() => {
+                barcodeCanvas.width = video.videoWidth;
+                barcodeCanvas.height = video.videoHeight;
+                var barcodeContext = barcodeCanvas.getContext("2d");
+                var imageWidth = Math.max(1, Math.floor(video.videoWidth)),imageHeight = Math.max(1, Math.floor(video.videoHeight));
+                barcodeContext.drawImage(video, 0, 0, imageWidth, imageHeight);
+                var imageData = barcodeContext.getImageData(0, 0, imageWidth, imageHeight);
+                var idd = imageData.data;
+                let code = jsQR(idd, imageWidth, imageHeight);
+                if (code) {
+                  cb(code.data);
+                }
+              }, 1000);
+            };
+          }).catch((err) => {
+            $router.showToast(err.toString());
+          });
+        },
+        unmounted: function() {
+          if (QR_READER) {
+            clearInterval(QR_READER);
+            QR_READER = null;
+          }
+          const video = document.getElementById("qr_video");
+          const stream = video.srcObject;
+          const tracks = stream.getTracks();
+          tracks.forEach(function (track) {
+            track.stop();
+          });
+          video.srcObject = null;
+        },
+      })
+    );
   }
 
   const miniPlayer = function($router, episode, cb = () => {}) {

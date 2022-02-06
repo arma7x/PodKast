@@ -24,5 +24,21 @@
         </span>
       </div>
     </li>
+    <li class="settingNav kui-divider" @click="changeAutoPlay()">
+      <div class="kui-row-center" style="justify-content:space-between;">
+        <span>PodcastIndex Key</span>
+        <span class="badge-setting">
+          {{#apikey}}YES{{/apikey}}{{^apikey}}NO{{/apikey}}
+        </span>
+      </div>
+    </li>
+    <li class="settingNav kui-divider" @click="changeAutoPlay()">
+      <div class="kui-row-center" style="justify-content:space-between;">
+        <span>PodcastIndex Secret</span>
+        <span class="badge-setting">
+          {{#apisecret}}YES{{/apisecret}}{{^apisecret}}NO{{/apisecret}}
+        </span>
+      </div>
+    </li>
   </ul>
 </div>
