@@ -785,13 +785,15 @@ window.addEventListener("load", () => {
             onreadystatechange: function(evt) {
               if (evt.currentTarget.readyState === 4) {
                 if (evt.currentTarget.status >= 200 && evt.currentTarget.status <= 399) {
-                  const paths = URL.split('/');
-                  const file = paths[paths.length - 1].split('.');
+                  var ext = 'mp3';
+                  if (MIME[evt.currentTarget.response.type] != null) {
+                    ext = MIME[evt.currentTarget.response.type];
+                  }
                   var localPath = ['podkast', 'cache', episode['feedId']];
                   if (DS.deviceStorage.storageName != '') {
                     localPath = [DS.deviceStorage.storageName, ...localPath];
                   }
-                  DS.addFile(localPath, `${episode['id']}.${file[file.length - 1]}`, evt.currentTarget.response)
+                  DS.addFile(localPath, `${episode['id']}.${ext}`, evt.currentTarget.response)
                   .then((file) => {
                     episode['podkastLocalPath'] = file.name;
                     $router.setSoftKeyCenterText('SUCCESS');
