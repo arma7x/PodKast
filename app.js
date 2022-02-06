@@ -422,11 +422,11 @@ window.addEventListener("load", () => {
       episodesObj[episode['id']] = tempEpisode;
       T_EPISODES.setItem(episode['feedId'].toString(), episodesObj);
       if (playable)
-        miniPlayer(router, episodesObj[episode['id']], cb);
+        miniPlayer($router, episodesObj[episode['id']], cb);
       return Promise.resolve(episodesObj[episode['id']]);
     })
     .catch((err) => {
-      miniPlayer(router, episode, cb);
+      miniPlayer($router, episode, cb);
       return Promise.reject(err);
     });
   }
