@@ -2047,7 +2047,7 @@ window.addEventListener("load", () => {
           setTimeout(() => {
             if (this.$router.stack[this.$router.stack.length - 1].name !== this.name)
               return;
-            this.methods.renderCenterKeyText();
+            this.methods.onratechange();
           }, 100);
         });
       }
