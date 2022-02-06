@@ -1436,12 +1436,41 @@ window.addEventListener("load", () => {
             });
           }
         },
-        softKeyText: { left: 'Description', center: 'LISTEN', right: 'More' },
+        softKeyText: { left: 'Episodes', center: 'LISTEN', right: 'More' },
         softKeyListener: {
           left: function() {
             if (this.data.list[this.verticalNavIndex] == null)
               return;
-            descriptionPage($router, this.data.list[this.verticalNavIndex]);
+            if (this.data.list[this.verticalNavIndex]['podkastSubscribe']) {
+              T_EPISODES.getItem(this.data.list[this.verticalNavIndex].id.toString())
+              .then((episodes) => {
+                if (episodes != null) {
+                  var temp = [];
+                  for (var x in episodes) {
+                    temp.push(episodes[x]);
+                  }
+                  temp.sort((a, b) => b.date - a.date);
+                  episodeListPage($router, this.data.list[this.verticalNavIndex].title, temp, {});
+                } else {
+                  $router.showToast('Required SYNC');
+                }
+              })
+              .catch((err) => {
+                console.log(err);
+              });
+            } else {
+              $router.showLoading();
+              extractPodcastEpisodesFromRSS($router, this.data.list[this.verticalNavIndex])
+              .then((result) => {
+                episodeListPage($router, this.data.list[this.verticalNavIndex].title, result, {});
+              })
+              .catch((err) => {
+                console.log(err);
+              })
+              .finally(() => {
+                $router.hideLoading();
+              });
+            }
           },
           center: function() {
             if (this.data.list[this.verticalNavIndex] == null)
@@ -1455,7 +1484,7 @@ window.addEventListener("load", () => {
             if (this.data.list[this.verticalNavIndex] == null)
               return;
             const menu = [
-              { 'text': 'Episode List' },
+              { 'text': 'Description' },
               { 'text': this.data.list[this.verticalNavIndex]['podkastSubscribe'] ? 'Unsubscribe' : 'Subscribe' }
             ];
             if (this.data.list[this.verticalNavIndex]['podkastSubscribe'])
@@ -1463,37 +1492,10 @@ window.addEventListener("load", () => {
             $router.showOptionMenu('More', menu, 'SELECT', (selected) => {
               if (['Unsubscribe', 'Subscribe'].indexOf(selected.text) > -1) {
                 subscribePodcast($router, this.data.list[this.verticalNavIndex]);
-              } else if (selected.text === 'Episode List') {
-                if (this.data.list[this.verticalNavIndex]['podkastSubscribe']) {
-                  T_EPISODES.getItem(this.data.list[this.verticalNavIndex].id.toString())
-                  .then((episodes) => {
-                    if (episodes != null) {
-                      var temp = [];
-                      for (var x in episodes) {
-                        temp.push(episodes[x]);
-                      }
-                      temp.sort((a, b) => b.date - a.date);
-                      episodeListPage($router, this.data.list[this.verticalNavIndex].title, temp, {});
-                    } else {
-                      $router.showToast('Required SYNC');
-                    }
-                  })
-                  .catch((err) => {
-                    console.log(err);
-                  });
-                } else {
-                  $router.showLoading();
-                  extractPodcastEpisodesFromRSS($router, this.data.list[this.verticalNavIndex])
-                  .then((result) => {
-                    episodeListPage($router, this.data.list[this.verticalNavIndex].title, result, {});
-                  })
-                  .catch((err) => {
-                    console.log(err);
-                  })
-                  .finally(() => {
-                    $router.hideLoading();
-                  });
-                }
+              } else if (selected.text === 'Description') {
+                if (this.data.list[this.verticalNavIndex] == null)
+                  return;
+                descriptionPage($router, this.data.list[this.verticalNavIndex]);
               } else if (selected.text === 'Sync Podcast') {
                 syncPodcast(this.$router, this.data.list[this.verticalNavIndex])
                 .then((result) => {
