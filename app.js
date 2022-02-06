@@ -849,7 +849,7 @@ window.addEventListener("load", () => {
           CURRENT_TIME = document.getElementById('mini_current_time');
           DURATION = document.getElementById('mini_duration');
           PLAY_BTN = document.getElementById('mini_play_btn');
-          THUMB_BUFF = document.getElementById('thumb_buffering');
+          THUMB_BUFF = document.getElementById('thumbx_buffering');
           THUMB_BUFF.style.visibility = 'visible';
           if (episode['feedImage'] == null || episode['feedImage'] == '')
             episode['feedImage'] = '/icons/icon112x112.png';
