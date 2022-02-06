@@ -216,7 +216,6 @@ window.addEventListener("load", () => {
       temp[key] = value;
     })
     .then(() => {
-      // console.log('initTableBookmarked', TABLE_BOOKMARKED, temp);
       state.setState(TABLE_BOOKMARKED, temp);
     })
     .catch((err) =>{
@@ -298,27 +297,27 @@ window.addEventListener("load", () => {
       $router.showLoading();
       Promise.all([podcastIndex.getFeed(id), T_PODCASTS.getItem(id.toString()), extractPodcastEpisodesFromRSS($router, podcast), T_EPISODES.getItem(id.toString())])
       .then((results) => {
-        var tempPodcast = results[1];
-        if (tempPodcast == null) {
+        var localPodcast = results[1];
+        if (localPodcast == null) {
           console.log('Podcast !Cached:', id);
-          tempPodcast = {};
-          tempPodcast['podkastCurrentEpisode'] = results[2][results[2].length - 1]['id'];
+          localPodcast = {};
+          localPodcast['podkastCurrentEpisode'] = results[2][results[2].length - 1]['id'];
         }
-        tempPodcast = Object.assign(tempPodcast, results[0].response.feed);
-        var tempEpisodes = results[3];
-        if (tempEpisodes == null) {
-          tempEpisodes = {};
+        localPodcast = Object.assign(localPodcast, results[0].response.feed);
+        var localEpisodes = results[3];
+        if (localEpisodes == null) {
+          localEpisodes = {};
         }
         results[2].forEach((episode) => {
-          if (tempEpisodes[episode['id']] == null) { // !CACHE
+          if (localEpisodes[episode['id']] == null) { // !CACHE
             console.log('Podcast Ep !Cached:', id, episode['id']);
-            tempEpisodes[episode['id']] = {};
-            tempEpisodes[episode['id']]['podkastLocalPath'] = false;
-            tempEpisodes[episode['id']]['podkastLastDuration'] = 0;
+            localEpisodes[episode['id']] = {};
+            localEpisodes[episode['id']]['podkastLocalPath'] = false;
+            localEpisodes[episode['id']]['podkastLastDuration'] = 0;
           }
-          tempEpisodes[episode['id']] = Object.assign(tempEpisodes[episode['id']], episode);
+          localEpisodes[episode['id']] = Object.assign(localEpisodes[episode['id']], episode);
         });
-        return Promise.all([T_PODCASTS.setItem(id.toString(), tempPodcast), T_EPISODES.setItem(id.toString(), tempEpisodes)]);
+        return Promise.all([T_PODCASTS.setItem(id.toString(), localPodcast), T_EPISODES.setItem(id.toString(), localEpisodes)]);
       })
       .then((saved) => {
         const result = {
@@ -417,6 +416,8 @@ window.addEventListener("load", () => {
         tempEpisode['podkastLocalPath'] = episode['podkastLocalPath'] || false;
         tempEpisode['podkastLastDuration'] = episode['podkastLastDuration'] || 0;
         tempEpisode = Object.assign(episode, tempEpisode);
+      } else {
+        tempEpisode = Object.assign(tempEpisode, episode);
       }
       episodesObj[episode['id']] = tempEpisode;
       T_EPISODES.setItem(episode['feedId'].toString(), episodesObj);
@@ -1194,9 +1195,10 @@ window.addEventListener("load", () => {
             .then((result) => {
               playEpisode($router, result, false)
               .then((saved) => {
+                console.log(saved);
                 for (var x in this.data.pages[this.data.pageCursor]) {
                   if (this.data.pages[this.data.pageCursor][x]['id'] === episode['id']) {
-                    this.data.pages[this.data.pageCursor][x]['podkastLocalPath'] = episode['podkastLocalPath'];
+                    this.data.pages[this.data.pageCursor][x]['podkastLocalPath'] = saved['podkastLocalPath'];
                     this.methods.gotoPage(this.data.pageCursor);
                     break;
                   }
