@@ -93,7 +93,7 @@ const DataStorage = (function() {
         }
       }
       request.onerror = function () {
-        reject(this.result);
+        reject(this.error);
         if (error !== undefined) {
           error(this.error);
         }

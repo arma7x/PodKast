@@ -380,18 +380,48 @@ window.addEventListener("load", () => {
     localStorage.setItem(ACTIVE_PODCAST, episode['feedId']);
     state.setState(ACTIVE_EPISODE, episode['id']);
     localStorage.setItem(ACTIVE_EPISODE, episode['id']);
-    MINI_PLAYER.src = '';
-    MINI_PLAYER.pause();
-    MINI_PLAYER.fastSeek(0);
-    MAIN_PLAYER.addEventListener('loadedmetadata', loadedmetadata);
-    MAIN_PLAYER.src = episode['enclosureUrl'];
-    MAIN_PLAYER.play();
-    T_PODCASTS.getItem(episode['feedId'].toString())
-    .then((savedPodcast) => {
-      if (savedPodcast != null) {
-        savedPodcast['podkastCurrentEpisode'] = episode['id'];
-        T_PODCASTS.setItem(episode['feedId'].toString(), savedPodcast);
+    const resolveMedia = new Promise((resolve, reject) => {
+      if (episode['podkastLocalPath'] != false) {
+        DS.__getFile__(episode['podkastLocalPath'])
+        .then((file) => {
+          resolve(window.URL.createObjectURL(file));
+        })
+        .catch((err) => {
+          verifyDomainSSL(episode['enclosureUrl'])
+          .then((url) => {
+            resolve(url);
+          })
+          .catch((err) => {
+            reject(err);
+          });
+        });
+      } else {
+        verifyDomainSSL(episode['enclosureUrl'])
+        .then((url) => {
+          resolve(url);
+        })
+        .catch((err) => {
+          reject(err);
+        });
       }
+    });
+    resolveMedia
+    .then((url) => {
+      console.log('playPodcast:', url);
+      MINI_PLAYER.pause();
+      MAIN_PLAYER.addEventListener('loadedmetadata', loadedmetadata);
+      MAIN_PLAYER.src = url;
+      MAIN_PLAYER.play();
+      T_PODCASTS.getItem(episode['feedId'].toString())
+      .then((savedPodcast) => {
+        if (savedPodcast != null) {
+          savedPodcast['podkastCurrentEpisode'] = episode['id'];
+          T_PODCASTS.setItem(episode['feedId'].toString(), savedPodcast);
+        }
+      })
+      .catch((err) => {
+        console.log(err);
+      });
     })
     .catch((err) => {
       console.log(err);
@@ -416,7 +446,8 @@ window.addEventListener("load", () => {
         tempEpisode['podkastLocalPath'] = episode['podkastLocalPath'] || false;
         tempEpisode['podkastLastDuration'] = episode['podkastLastDuration'] || 0;
         tempEpisode = Object.assign(episode, tempEpisode);
-      } else {
+      } else if (!playable){
+        episode['podkastLastDuration'] = tempEpisode['podkastLastDuration'];
         tempEpisode = Object.assign(tempEpisode, episode);
       }
       episodesObj[episode['id']] = tempEpisode;
@@ -874,7 +905,6 @@ window.addEventListener("load", () => {
           .catch((err) => {
             console.log(err);
           });
-          MAIN_PLAYER.pause();
           MINI_PLAYER.addEventListener('loadedmetadata', this.methods.onloadedmetadata);
           MINI_PLAYER.addEventListener('timeupdate', this.methods.ontimeupdate);
           MINI_PLAYER.addEventListener('pause', this.methods.onpause);
@@ -884,11 +914,45 @@ window.addEventListener("load", () => {
           MINI_PLAYER.addEventListener('ratechange', this.methods.onratechange);
           MINI_PLAYER.addEventListener('error', this.methods.onerror);
           document.addEventListener('keydown', this.methods.onKeydown);
-          MINI_PLAYER.src = episode['enclosureUrl'];
-          MINI_PLAYER.play();
-          this.methods.onratechange();
+          const resolveMedia = new Promise((resolve, reject) => {
+            if (episode['podkastLocalPath'] != false) {
+              DS.__getFile__(episode['podkastLocalPath'])
+              .then((file) => {
+                resolve(window.URL.createObjectURL(file));
+              })
+              .catch((err) => {
+                verifyDomainSSL(episode['enclosureUrl'])
+                .then((url) => {
+                  resolve(url);
+                })
+                .catch((err) => {
+                  reject(err);
+                });
+              });
+            } else {
+              verifyDomainSSL(episode['enclosureUrl'])
+              .then((url) => {
+                resolve(url);
+              })
+              .catch((err) => {
+                reject(err);
+              });
+            }
+          });
+          resolveMedia
+          .then((url) => {
+            console.log('miniPlayer:', url);
+            MAIN_PLAYER.pause();
+            MINI_PLAYER.src = url;
+            MINI_PLAYER.play();
+            this.methods.onratechange();
+          })
+          .catch((err) => {
+            console.log(err);
+          });
         },
         unmounted: function() {
+          MINI_PLAYER.pause();
           MINI_PLAYER.removeEventListener('loadedmetadata', this.methods.onloadedmetadata);
           MINI_PLAYER.removeEventListener('timeupdate', this.methods.ontimeupdate);
           MINI_PLAYER.removeEventListener('pause', this.methods.onpause);
@@ -898,9 +962,6 @@ window.addEventListener("load", () => {
           MINI_PLAYER.removeEventListener('ratechange', this.methods.onratechange);
           MINI_PLAYER.removeEventListener('error', this.methods.onerror);
           document.removeEventListener('keydown', this.methods.onKeydown);
-          MINI_PLAYER.src = '';
-          MINI_PLAYER.pause();
-          MINI_PLAYER.fastSeek(0);
           setTimeout(() => {
             cb();
             state.setState(TABLE_BOOKMARKED, state.getState(TABLE_BOOKMARKED));
