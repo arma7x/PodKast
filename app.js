@@ -1,4 +1,5 @@
 var BOOT = false;
+var SLEEP_TIMER = null;
 var MAIN_DURATION_SLIDER;
 var MAIN_CURRENT_TIME;
 var MAIN_DURATION;
@@ -2105,6 +2106,22 @@ window.addEventListener("load", () => {
   } catch(e) {
     console.log(e);
   }
+
+  document.addEventListener('visibilitychange', function(ev) {
+    if (document.visibilityState === 'visible') {
+      if (SLEEP_TIMER != null) {
+        clearTimeout(SLEEP_TIMER);
+        SLEEP_TIMER = null;
+      }
+    } else {
+      if (state.getState(AUTOSLEEP) !== false && typeof state.getState(AUTOSLEEP) === 'number') {
+        SLEEP_TIMER = setTimeout(() => {
+          window.close();
+        }, state.getState(AUTOSLEEP) * 60 * 1000);
+      }
+    }
+  });
+
 });
 
 if ('serviceWorker' in navigator) {
