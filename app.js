@@ -498,7 +498,6 @@ window.addEventListener("load", () => {
             feedTitle: feedTitle.length > 0 ? feedTitle[0].childNodes[0].nodeValue : '',
           });
         });
-        console.log(episodes);
         resolve(episodes);
       })
       .catch((err) => {
