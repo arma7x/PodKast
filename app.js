@@ -480,20 +480,25 @@ window.addEventListener("load", () => {
           const enclosureUrl = item.getElementsByTagName("enclosure")[0].getAttribute('url');
           const desc = item.getElementsByTagName("description");
           const img = item.getElementsByTagName("itunes:image");
+          const duration = item.getElementsByTagName("itunes:duration");
           const feedTitle = xml.getElementsByTagName("title");
           episodes.push({
             id: sha1(btoa(enclosureUrl + date.toString())),
             title: item.getElementsByTagName("title")[0].childNodes[0].nodeValue,
+            duration: duration.length > 0 ? convertTime(duration[0].childNodes[0].nodeValue) : false,
             description: desc.length > 0 ? desc[0].textContent.trim() : '',
             date: date,
             pubDate: item.getElementsByTagName("pubDate")[0].childNodes[0].nodeValue,
             enclosureUrl: enclosureUrl,
+            enclosureType: item.getElementsByTagName("enclosure")[0].getAttribute('type'),
+            enclosureLength: readableFileSize(item.getElementsByTagName("enclosure")[0].getAttribute('length'), true, 2),
             image: img.length > 0 ? img[0].getAttribute('href') : '',
             feedImage: podcast['image'],
             feedId: podcast['id'],
             feedTitle: feedTitle.length > 0 ? feedTitle[0].childNodes[0].nodeValue : '',
           });
         });
+        console.log(episodes);
         resolve(episodes);
       })
       .catch((err) => {
@@ -1703,7 +1708,7 @@ window.addEventListener("load", () => {
               } else if (selected.text === 'Sync Podcast') {
                 syncPodcast(this.$router, this.data.list[this.verticalNavIndex])
                 .then((result) => {
-                  console.log(result.episodes[result.podcast['podkastCurrentEpisode']]);
+                  // console.log(result.episodes[result.podcast['podkastCurrentEpisode']]);
                 })
                 .catch((err) => {
                   console.log(err);
