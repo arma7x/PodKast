@@ -2232,7 +2232,7 @@ window.addEventListener("load", () => {
     console.log(e);
   }
 
-  document.addEventListener('visibilitychange', function(ev) {
+  document.addEventListener('visibilitychange', (evt) => {
     if (document.visibilityState === 'visible') {
       if (SLEEP_TIMER != null) {
         clearTimeout(SLEEP_TIMER);
