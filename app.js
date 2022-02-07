@@ -1,5 +1,6 @@
 var BOOT = false;
 var SLEEP_TIMER = null;
+var WAKE_LOCK = null;
 var QR_READER = null;
 var MAIN_DURATION_SLIDER;
 var MAIN_CURRENT_TIME;
@@ -856,6 +857,7 @@ window.addEventListener("load", () => {
             right: function() {}
           },
           mounted: function() {
+            WAKE_LOCK = navigator.requestWakeLock('cpu');
             BAR = document.getElementById('download_bar');
             CUR = document.getElementById('download_cur');
             MAX = document.getElementById('download_max');
@@ -866,6 +868,10 @@ window.addEventListener("load", () => {
             req.send();
           },
           unmounted: function() {
+            if (WAKE_LOCK) {
+              WAKE_LOCK.unlock();
+              WAKE_LOCK = null;
+            }
             resolve(episode);
             setTimeout(cb, 100);
           },
@@ -2246,7 +2252,7 @@ window.addEventListener("load", () => {
         SLEEP_TIMER = null;
       }
     } else {
-      if (state.getState(AUTOSLEEP) !== false && typeof state.getState(AUTOSLEEP) === 'number') {
+      if (state.getState(AUTOSLEEP) !== false && typeof state.getState(AUTOSLEEP) === 'number' && WAKE_LOCK == null) {
         SLEEP_TIMER = setTimeout(() => {
           window.close();
         }, state.getState(AUTOSLEEP) * 60 * 1000);
