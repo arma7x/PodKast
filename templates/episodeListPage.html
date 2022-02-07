@@ -62,11 +62,8 @@
           {{/podkastPlaying}}
         </div>
         <div class="wrapper-info">
-          <p id="title_{{ feedId }}_{{ id }}" class="wrapper-info-child" style="font-size:13px;padding-bottom:3px;">{{ podkastTitle }}</p>
+          <p id="title_{{ feedId }}_{{ id }}" class="wrapper-info-child" style="font-size:13px;padding-bottom:3px;">{{#podkastCursor}}<span class="kai-icon-arrow" style="font-size:12px;"></span>{{/podkastCursor}}{{ podkastTitle }}</p>
           <div style="position:absolute;margin:-1px 0 0 3px;padding:2px;bottom:0;left:0;font-weight:lighter;">
-            {{#podkastCursor}}
-            <span class="kai-icon-arrow" style="font-size:12px;"></span>
-            {{/podkastCursor}}
             <p style="text-align:left;font-weight:lighter;">{{#duration}}{{duration}}{{/duration}}     {{#enclosureLength}}{{enclosureLength}}{{/enclosureLength}}</p>
             {{#episode}}
             <p style="text-align:left;font-weight:lighter;">Episode: {{ episode }}</p>
