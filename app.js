@@ -1243,6 +1243,7 @@ window.addEventListener("load", () => {
         verticalNavClass: '.ePageNav',
         templateUrl: document.location.origin + '/templates/episodeListPage.html',
         mounted: function() {
+          state.addStateListener(TABLE_BOOKMARKED, this.methods.listenState);
           this.$router.setHeaderTitle(title);
           const bookmarkList = state.getState(TABLE_BOOKMARKED);
           if (data == null) {
@@ -1250,7 +1251,6 @@ window.addEventListener("load", () => {
           } else {
             this.methods.processData(bookmarkList);
           }
-          state.addStateListener(TABLE_BOOKMARKED, this.methods.listenState);
         },
         unmounted: function() {
           state.removeStateListener(TABLE_BOOKMARKED, this.methods.listenState);
@@ -1548,6 +1548,7 @@ window.addEventListener("load", () => {
         verticalNavClass: '.pPageNav',
         templateUrl: document.location.origin + '/templates/podcastListPage.html',
         mounted: function() {
+          state.addStateListener(TABLE_SUBSCRIBED, this.methods.listenState);
           $router.setHeaderTitle(title);
           const subscribedList = state.getState(TABLE_SUBSCRIBED);
           if (data == null) {
@@ -1555,7 +1556,6 @@ window.addEventListener("load", () => {
           } else {
             this.methods.processData(subscribedList);
           }
-          state.addStateListener(TABLE_SUBSCRIBED, this.methods.listenState);
         },
         unmounted: function() {
           state.removeStateListener(TABLE_SUBSCRIBED, this.methods.listenState);
