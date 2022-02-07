@@ -67,8 +67,9 @@
             {{#podkastCursor}}
             <span class="kai-icon-arrow" style="font-size:12px;"></span>
             {{/podkastCursor}}
+            <p style="text-align:left;font-weight:lighter;">{{#duration}}{{duration}}{{/duration}} {{#enclosureLength}}{{enclosureLength}}{{/enclosureLength}}</p>
             {{#episode}}
-            <p>Episode: {{ episode }}</p>
+            <p style="text-align:left;font-weight:lighter;">Episode: {{ episode }}</p>
             {{/episode}}
           </div>
           <div style="position:absolute;margin-top:-1px;padding:2px;bottom:0;right:0;display-flex;flex-direction:row;">
