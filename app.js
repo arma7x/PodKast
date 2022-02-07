@@ -1286,6 +1286,11 @@ window.addEventListener("load", () => {
               const cursor = podcast != null ? podcast['podkastCurrentEpisode'] : false;
               const pages = [];
               const temp = JSON.parse(JSON.stringify(data));
+              if (temp.length === 0) {
+                $router.showToast('Empty');
+                $router.pop();
+                return;
+              }
               while (temp.length > 0) {
                 pages.push(temp.splice(0, 20));
                 if (this.data.init && ((episodeId != null && episodeId != false) || cursor)) {
@@ -1313,6 +1318,8 @@ window.addEventListener("load", () => {
           processDataNull: function(bookmarkList) {
             if (Object.keys(bookmarkList).length === 0) {
               this.setData({ list: [] });
+              $router.showToast('Empty');
+              $router.pop();
               return;
             }
             var temp = [];
