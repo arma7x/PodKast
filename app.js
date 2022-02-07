@@ -322,12 +322,19 @@ window.addEventListener("load", () => {
           }
           localEpisodes[episode['id']] = Object.assign(localEpisodes[episode['id']], episode);
         });
-        return Promise.all([T_PODCASTS.setItem(id.toString(), localPodcast), T_EPISODES.setItem(id.toString(), localEpisodes)]);
+        var newEpisode = 0;
+        if (results[3] != null && Object.keys(results[3]).length > 0) {
+          if (Object.keys(localEpisodes).length > Object.keys(results[3]).length)
+            newEpisode = Object.keys(localEpisodes).length - Object.keys(results[3]).length;
+        }
+        localPodcast['episodeCount'] = Object.keys(localEpisodes).length;
+        return Promise.all([T_PODCASTS.setItem(id.toString(), localPodcast), T_EPISODES.setItem(id.toString(), localEpisodes), Promise.resolve(newEpisode)]);
       })
       .then((saved) => {
         const result = {
           podcast: saved[0],
           episodes: saved[1],
+          newEpisode: saved[2]
         }
         resolve(result);
       })
@@ -1714,7 +1721,7 @@ window.addEventListener("load", () => {
               } else if (selected.text === 'Sync Podcast') {
                 syncPodcast(this.$router, this.data.list[this.verticalNavIndex])
                 .then((result) => {
-                  // console.log(result.episodes[result.podcast['podkastCurrentEpisode']]);
+                  console.log(result['newEpisode']);
                 })
                 .catch((err) => {
                   console.log(err);
