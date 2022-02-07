@@ -29,6 +29,13 @@ const convertTime = function(time) {
 }
 
 const readableFileSize = function(bytes, si = false, dp = 1) {
+  if (typeof bytes !== 'number') {
+    try {
+      bytes = JSON.parse(bytes);
+    } catch(e) {
+      return false;
+    }
+  }
   const thresh = si ? 1000 : 1024;
   if (Math.abs(bytes) < thresh) {
     return bytes + ' Byte';
