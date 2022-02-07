@@ -375,6 +375,7 @@ window.addEventListener("load", () => {
         })
         .catch((err) => {
           console.log(err);
+          $router.showToast('Fail SYNC');
         });
       }
     })
@@ -401,6 +402,7 @@ window.addEventListener("load", () => {
         .catch((err) => {
           verifyDomainSSL(episode['enclosureUrl'])
           .then((url) => {
+            $router.showToast('Stream from network');
             resolve(url);
           })
           .catch((err) => {
@@ -437,6 +439,7 @@ window.addEventListener("load", () => {
     })
     .catch((err) => {
       console.log(err);
+      $router.showToast('Unable to play podcast');
     });
   }
 
@@ -527,7 +530,6 @@ window.addEventListener("load", () => {
         });
       })
       .catch((err) => {
-        console.log(err);
         const obj = podcastIndex.makeRss(podcast.url || podcast.originalUrl, {}, {'content-type': podcast.contentType}, true);
         resolve(getRSSFromServer(obj.url, obj.query, {}, podcast))
         .then((episodes) => {
@@ -932,6 +934,7 @@ window.addEventListener("load", () => {
               console.log(err);
               $router.setSoftKeyCenterText('FAIL');
               $router.setSoftKeyRightText('Exit');
+              $router.showToast('Network Error');
             }
           },
           backKeyListener: function(evt) {
@@ -1066,6 +1069,7 @@ window.addEventListener("load", () => {
               .catch((err) => {
                 verifyDomainSSL(episode['enclosureUrl'])
                 .then((url) => {
+                  $router.showToast('Stream from network');
                   resolve(url);
                 })
                 .catch((err) => {
@@ -1092,6 +1096,7 @@ window.addEventListener("load", () => {
           })
           .catch((err) => {
             console.log(err);
+            $router.showToast('Network Error');
           });
         },
         unmounted: function() {
@@ -1688,6 +1693,7 @@ window.addEventListener("load", () => {
               })
               .catch((err) => {
                 console.log(err);
+                $router.showToast('Network Error');
               })
               .finally(() => {
                 $router.hideLoading();
@@ -1728,6 +1734,7 @@ window.addEventListener("load", () => {
                 })
                 .catch((err) => {
                   console.log(err);
+                  $router.showToast('Fail SYNC');
                 });
               }
             }, () => {});
@@ -2068,6 +2075,7 @@ window.addEventListener("load", () => {
               })
               .catch((err) => {
                 console.log(err);
+                $router.showToast('Network Error');
               })
               .finally(() => {
                 this.$router.hideLoading();
@@ -2092,6 +2100,7 @@ window.addEventListener("load", () => {
                           console.log(err);
                         })
                         .finally(() => {
+                          $router.showToast('Network Error');
                           this.$router.hideLoading();
                         });
                       });
@@ -2104,6 +2113,7 @@ window.addEventListener("load", () => {
                           podcastListPage(this.$router, selected.text, result.response.feeds);
                         })
                         .catch((err) => {
+                          $router.showToast('Network Error');
                           console.log(err);
                         })
                         .finally(() => {
@@ -2126,6 +2136,7 @@ window.addEventListener("load", () => {
                         podcastListPage(this.$router, "Recent Podcast", result.response.feeds);
                       })
                       .catch((err) => {
+                        $router.showToast('Network Error');
                         console.log(err);
                       })
                       .finally(() => {
@@ -2146,6 +2157,7 @@ window.addEventListener("load", () => {
                             podcastListPage(this.$router, "Recent Podcast", result.response.feeds);
                           })
                           .catch((err) => {
+                            $router.showToast('Network Error');
                             console.log(err);
                           })
                           .finally(() => {
@@ -2166,6 +2178,7 @@ window.addEventListener("load", () => {
                   podcastListPage(this.$router, selected.text, result.response.feeds);
                 })
                 .catch((err) => {
+                  $router.showToast('Network Error');
                   console.log(err);
                 })
                 .finally(() => {
@@ -2182,6 +2195,7 @@ window.addEventListener("load", () => {
                     podcastListPage(this.$router, result.response.feed.title, [result.response.feed]);
                   })
                   .catch((err) => {
+                    $router.showToast('Network Error');
                     console.log(err);
                   })
                   .finally(() => {
