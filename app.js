@@ -822,6 +822,7 @@ window.addEventListener("load", () => {
         },
         templateUrl: document.location.origin + '/templates/description.html',
         mounted: function() {
+          displayKaiAds();
           this.$router.setHeaderTitle(data.title);
         },
         unmounted: function() {},
@@ -1263,6 +1264,7 @@ window.addEventListener("load", () => {
         verticalNavClass: '.ePageNav',
         templateUrl: document.location.origin + '/templates/episodeListPage.html',
         mounted: function() {
+          displayKaiAds();
           state.addStateListener(TABLE_BOOKMARKED, this.methods.listenState);
           this.$router.setHeaderTitle(title);
           const bookmarkList = state.getState(TABLE_BOOKMARKED);
@@ -1773,6 +1775,7 @@ window.addEventListener("load", () => {
     components: [],
     templateUrl: document.location.origin + '/templates/home.html',
     mounted: function() {
+      displayKaiAds();
       this.$router.setHeaderTitle('PodKast');
       const CURRENT_VERSION = window.localStorage.getItem('APP_VERSION');
       if (APP_VERSION != CURRENT_VERSION) {
@@ -2288,8 +2291,45 @@ window.addEventListener("load", () => {
     console.log(e);
   }
 
+  function displayKaiAds() {
+    var display = true;
+    if (window['kaiadstimer'] == null) {
+      window['kaiadstimer'] = new Date();
+    } else {
+      var now = new Date();
+      if ((now - window['kaiadstimer']) < 300000) {
+        display = false;
+      } else {
+        window['kaiadstimer'] = now;
+      }
+    }
+    console.log('Display Ads:', display);
+    if (!display)
+      return;
+    getKaiAd({
+      publisher: 'ac3140f7-08d6-46d9-aa6f-d861720fba66',
+      app: 'podkast',
+      slot: 'kaios',
+      onerror: err => console.error(err),
+      onready: ad => {
+        ad.call('display')
+        ad.on('close', () => {
+          app.$router.hideBottomSheet();
+          document.body.style.position = '';
+        });
+        ad.on('display', () => {
+          app.$router.hideBottomSheet();
+          document.body.style.position = '';
+        });
+      }
+    })
+  }
+
+  displayKaiAds();
+
   document.addEventListener('visibilitychange', (evt) => {
     if (document.visibilityState === 'visible') {
+      displayKaiAds();
       if (SLEEP_TIMER != null) {
         clearTimeout(SLEEP_TIMER);
         SLEEP_TIMER = null;
