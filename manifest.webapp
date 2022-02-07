@@ -7,7 +7,8 @@
   "theme_color": "#431F7F",
   "background_color": "#431F7F",
   "categories": [
-    "news"
+    "news",
+    "entertainment"
   ],
   "icons": {
     "56": "/icons/icon56x56.png",

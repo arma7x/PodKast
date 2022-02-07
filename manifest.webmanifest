@@ -1,0 +1,87 @@
+{
+  "lang": "en-US",
+  "id": "PodKast",
+  "name": "PodKast",
+  "description": "JS framework for KaiOS",
+  "theme": "#431F7F",
+  "theme_color": "#431F7F",
+  "background_color": "#431F7F",
+  "orientation": "portrait",
+  "start_url": "/index.html",
+  "categories": [
+    "news",
+    "entertainment"
+  ],
+  "icons": [
+    {
+      "src": "/icons/icon56x56.png",
+      "type": "image/png",
+      "sizes": "56x56"
+    },
+    {
+      "src": "/icons/icon112x112.png",
+      "type": "image/png",
+      "sizes": "112x112"
+    }
+  ],
+  "b2g_features": {
+    "version": "3.0.0",
+    "type": "privileged",
+    "core": true,
+    "default_locale": "en-US",
+    "developer": {
+      "name": "arma7x",
+      "url": "https://www.kaiostech.com"
+    },
+    "origin": "podkast",
+    "permissions": {
+      "device-storage:sdcard": {
+        "access": "readwrite",
+        "description": "Store audio files on device storage"
+      },
+      "audio-channel-normal": {
+        "description": "To play audio in normal channel"
+      },
+      "audio-channel-content": {
+        "description": "To play audio in background channel"
+      },
+      "volumemanager": {
+        "description": "To control volume manager"
+      },
+      "systemXHR": {
+        "description": "Required to load remote content"
+      },
+      "tcp-socket": {
+        "description": "Check host SSL Cert(Lets Encrypt)"
+      },
+      "video-capture": {
+        "description": "Required for qr-code reader(PodcastIndex key/secret)"
+      },
+      "serviceworker": {
+        "description": "Needed for assocating service worker"
+      },
+      "desktop-notification": {
+        "description": "Required for display notification"
+      },
+      "mobiledata": {
+        "description": "China Type Approval(CTA)"
+      },
+      "wifidata": {
+        "description": "China Type Approval(CTA)"
+      },
+      "external-api": {
+        "description": "Volume Manager API"
+      },
+    },
+    "dependencies": {
+      "ads-sdk": "1.5.3"
+    },
+    "locales": {
+      "en-US": {
+        "name": "PodKast",
+        "subtitle": "JS framework for KaiOS",
+        "description": "JS framework for KaiOS"
+      }
+    }
+  }
+}
