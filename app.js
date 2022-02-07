@@ -1721,7 +1721,7 @@ window.addEventListener("load", () => {
               } else if (selected.text === 'Sync Podcast') {
                 syncPodcast(this.$router, this.data.list[this.verticalNavIndex])
                 .then((result) => {
-                  console.log(result['newEpisode']);
+                  pushLocalNotification(result['podcast']['title'], `${result['newEpisode']} new episode`, true, true);
                 })
                 .catch((err) => {
                   console.log(err);

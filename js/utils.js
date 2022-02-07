@@ -52,12 +52,12 @@ const readableFileSize = function(bytes, si = false, dp = 1) {
   return bytes.toFixed(dp) + '' + units[u];
 }
 
-const pushLocalNotification = function(title, body) {
+const pushLocalNotification = function(title, body, requireInteraction = false, closeOnClick = false) {
   window.Notification.requestPermission()
   .then((result) => {
     var notification = new window.Notification(title, {
       body: body,
-      requireInteraction: true
+      requireInteraction: requireInteraction
     });
     notification.onerror = function(err) {
       console.log(err);
@@ -66,7 +66,7 @@ const pushLocalNotification = function(title, body) {
       if (window.navigator.mozApps) {
         var request = window.navigator.mozApps.getSelf();
         request.onsuccess = function() {
-          if (request.result) {
+          if (request.result && closeOnClick) {
             notification.close();
             request.result.launch();
           }
