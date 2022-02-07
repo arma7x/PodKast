@@ -1721,7 +1721,10 @@ window.addEventListener("load", () => {
               } else if (selected.text === 'Sync Podcast') {
                 syncPodcast(this.$router, this.data.list[this.verticalNavIndex])
                 .then((result) => {
-                  pushLocalNotification(result['podcast']['title'], `${result['newEpisode']} new episode`, true, true);
+                  if (result['newEpisode'] > 0) {
+                    pushLocalNotification(result['podcast']['title'], `${result['newEpisode']} new episode`, true, true);
+                    state.setState(TABLE_SUBSCRIBED, state.getState(TABLE_SUBSCRIBED));
+                  }
                 })
                 .catch((err) => {
                   console.log(err);
