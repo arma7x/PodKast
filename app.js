@@ -1569,6 +1569,11 @@ window.addEventListener("load", () => {
             }
           },
           processData: function(subscribedList) {
+            if (data.length === 0) {
+              $router.showToast('Empty');
+              $router.pop();
+              return;
+            }
             data.forEach((i) => {
               const listen = MAIN_PLAYER.duration > 0 && !MAIN_PLAYER.paused && state.getState(ACTIVE_PODCAST).toString() == i['id'].toString();
               i['podkastListening'] = listen;
@@ -1588,6 +1593,8 @@ window.addEventListener("load", () => {
           processDataNull: function(subscribedList) {
             if (subscribedList.length === 0) {
               this.setData({ list: [] });
+              $router.showToast('Empty');
+              $router.pop();
               return;
             }
             var temp = [];
