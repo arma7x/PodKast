@@ -2,7 +2,9 @@ const MIME = {"audio/aac":"aac","audio/x-aac":"aac","audio/adpcm":"adp","applica
 
 const convertTime = function(time) {
   if (isNaN(time)) {
-    return time.replace('00:', '');
+    if (typeof time === 'string')
+      return time.replace('00:', '');
+    return '00:00';
   }
   var hours = "";
   var mins = Math.floor(time / 60);
