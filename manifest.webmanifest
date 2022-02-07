@@ -2,7 +2,7 @@
   "lang": "en-US",
   "id": "PodKast",
   "name": "PodKast",
-  "description": "JS framework for KaiOS",
+  "description": "With PodKast, you can play the latest episodes from your favourite shows, explore podcast recommendations just for you and manage your listening activity.",
   "theme": "#431F7F",
   "theme_color": "#431F7F",
   "background_color": "#431F7F",
@@ -79,8 +79,8 @@
     "locales": {
       "en-US": {
         "name": "PodKast",
-        "subtitle": "JS framework for KaiOS",
-        "description": "JS framework for KaiOS"
+        "subtitle": "With PodKast, you can play the latest episodes from your favourite shows, explore podcast recommendations just for you and manage your listening activity.",
+        "description": "With PodKast, you can play the latest episodes from your favourite shows, explore podcast recommendations just for you and manage your listening activity."
       }
     }
   }
