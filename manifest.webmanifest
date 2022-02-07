@@ -71,7 +71,7 @@
       },
       "external-api": {
         "description": "Volume Manager API"
-      },
+      }
     },
     "dependencies": {
       "ads-sdk": "1.5.3"

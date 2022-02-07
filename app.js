@@ -849,7 +849,7 @@ window.addEventListener("load", () => {
       var loaded = 0;
       var req = new XMLHttpRequest({ mozSystem: true });
       req.open('GET', URL, true);
-      req.responseType = 'moz-blob';
+      req.responseType = 'blob';
 
       $router.showBottomSheet(
         new Kai({
@@ -870,7 +870,8 @@ window.addEventListener("load", () => {
             right: function() {}
           },
           mounted: function() {
-            WAKE_LOCK = navigator.requestWakeLock('cpu');
+            const lock = navigator.b2g || navigator;
+            WAKE_LOCK = lock.requestWakeLock('cpu');
             BAR = document.getElementById('download_bar');
             CUR = document.getElementById('download_cur');
             MAX = document.getElementById('download_max');
