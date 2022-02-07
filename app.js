@@ -629,8 +629,8 @@ window.addEventListener("load", () => {
       title: 'helpSupport',
       list: [
         {
-          'question': 'Which sorting/aggregations timeframe available for Logs & Reports ?',
-          'answer': `- Daily<br>- Weekly<br>- Monthly<br>- Yearly<br>- Entire Logs<br>- Advanced`,
+          'question': 'TODO',
+          'answer': `TODO`,
         },
       ]
     },
@@ -921,6 +921,13 @@ window.addEventListener("load", () => {
                     episode['podkastLocalPath'] = file.name;
                     $router.setSoftKeyCenterText('SUCCESS');
                     $router.setSoftKeyLeftText('Close');
+                    if (WAKE_LOCK) {
+                      WAKE_LOCK.unlock();
+                      WAKE_LOCK = null;
+                    }
+                    if (document.visibilityState === 'hidden') {
+                      pushLocalNotification(episode['title'], 'Done downloading', true, true);
+                    }
                   })
                   .catch((err) => {
                     console.log(err);
