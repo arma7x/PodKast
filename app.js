@@ -803,7 +803,7 @@ window.addEventListener("load", () => {
       new Kai({
         name: 'descriptionPage',
         data: {
-          title: 'descriptionPage',
+          title: data.title,
           description: data.description
         },
         templateUrl: document.location.origin + '/templates/description.html',
