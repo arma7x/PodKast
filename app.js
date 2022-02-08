@@ -677,6 +677,10 @@ window.addEventListener("load", () => {
           'answer': `<img width="12px" height="12px" src="/icons/play_white.png" style="background-color:#000;margin-right:2px;"/>The audio is being played on Main Player<br><span class="kai-icon-arrow" style="font-size:12px;"></span> Current episode of podcast you listen<br><span class="kai-icon-favorite-on" style="font-size:12px;"></span> Bookmarked episode<br><span class="kai-icon-download" style="font-size:12px;"></span> Available for offline stream<br><span class="kai-icon-wifi" style="font-size:12px;"></span> Required network stream`,
         },
         {
+          'question': 'Episode Ordering',
+          'answer': `The episode list is sorted from newest to oldest, 20 episodes per page. Users can use Arrow Up & Arrow Down to navigate between episodes and Arrow Left & Arrow Right to switch pages. Page index is located at the bottom-left of screen`,
+        },
+        {
           'question': 'Sleep Timer',
           'answer': `If the Sleep Timer is on, the app will automatically close(exit) while the screen-off or app was minimized. Sleep Timer disabled during audio downloading process`,
         },
@@ -689,7 +693,7 @@ window.addEventListener("load", () => {
           'answer': `1. Go here https://api.podcastindex.org to get your own API key & secret.<br>2. Goto Setting page to setup your API key and secret<br>3. PodKast will scan qr-code that contain your API key & secret string<br>4. Please use any webservice to convert text(api & secret) to qr-code image`,
         },
         {
-          'question': 'Keypad Shortcuts',
+          'question': 'Player Keypad Shortcuts',
           'answer': `-> Center/Enter(play/pause)<br>-> Arrow Up(volume up)<br>-> Arrow Down(volume down)<br>-> Arrow Left(-10s)<br>-> Arrow Right(+10s)<br>-> Button Call(play from 0)<br>-> Button 1(-30s)<br>-> Button 3(+30s)<br>-> Button 4(-60s)<br>-> Button 6(+60s)<br>-> Button 7(-0.05% of total duration)<br>-> Button 9(+0.05% of total duration)<br>-> Button 2(+0.25 playback speed)<br>-> Button 5(reset playback speed to 1)<br>-> Button 8(-0.25 playback speed)`,
         },
       ]
