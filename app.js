@@ -1067,6 +1067,7 @@ window.addEventListener("load", () => {
           MINI_PLAYER.addEventListener('seeking', this.methods.onseeking);
           MINI_PLAYER.addEventListener('seeked', this.methods.onseeked);
           MINI_PLAYER.addEventListener('ratechange', this.methods.onratechange);
+          MINI_PLAYER.addEventListener('ended', this.methods.onended);
           MINI_PLAYER.addEventListener('error', this.methods.onerror);
           document.addEventListener('keydown', this.methods.onKeydown);
           const resolveMedia = new Promise((resolve, reject) => {
@@ -1117,6 +1118,7 @@ window.addEventListener("load", () => {
           MINI_PLAYER.removeEventListener('seeking', this.methods.onseeking);
           MINI_PLAYER.removeEventListener('seeked', this.methods.onseeked);
           MINI_PLAYER.removeEventListener('ratechange', this.methods.onratechange);
+          MINI_PLAYER.removeEventListener('ended', this.methods.onended);
           MINI_PLAYER.removeEventListener('error', this.methods.onerror);
           document.removeEventListener('keydown', this.methods.onKeydown);
           setTimeout(() => {
@@ -1166,8 +1168,13 @@ window.addEventListener("load", () => {
           onratechange: function() {
             $router.setSoftKeyCenterText(`${MINI_PLAYER.playbackRate}x`);
           },
-          onerror: function (evt) {
-            $router.showToast(evt.toString());
+          onended: function() {
+            PLAY_BTN.src = '/icons/play.png';
+          },
+          onerror: function () {
+            MINI_PLAYER.pause();
+            PLAY_BTN.src = '/icons/play.png';
+            $router.showToast('Error');
           },
           onKeydown: function(evt) {
             if (MINI_PLAYER.duration <= 0)
@@ -1803,6 +1810,7 @@ window.addEventListener("load", () => {
       MAIN_PLAYER.addEventListener('seeking', this.methods.onseeking);
       MAIN_PLAYER.addEventListener('seeked', this.methods.onseeked);
       MAIN_PLAYER.addEventListener('ratechange', this.methods.onratechange);
+      MAIN_PLAYER.addEventListener('ended', this.methods.onended);
       MAIN_PLAYER.addEventListener('error', this.methods.onerror);
       document.addEventListener('keydown', this.methods.onKeydown);
       MAIN_DURATION.innerHTML = convertTime(MAIN_PLAYER.duration);
@@ -1825,7 +1833,8 @@ window.addEventListener("load", () => {
       MAIN_PLAYER.removeEventListener('seeking', this.methods.onseeking);
       MAIN_PLAYER.removeEventListener('seeked', this.methods.onseeked);
       MAIN_PLAYER.removeEventListener('ratechange', this.methods.onratechange);
-      MAIN_PLAYER.addEventListener('error', this.methods.onerror);
+      MAIN_PLAYER.removeEventListener('ended', this.methods.onended);
+      MAIN_PLAYER.removeEventListener('error', this.methods.onerror);
       document.removeEventListener('keydown', this.methods.onKeydown);
     },
     methods: {
@@ -1902,8 +1911,13 @@ window.addEventListener("load", () => {
       onratechange: function() {
         this.$router.setSoftKeyCenterText(`${MAIN_PLAYER.playbackRate}x`);
       },
-      onerror: function (evt) {
-        this.$router.showToast(evt.toString());
+      onended: function() {
+        MAIN_PLAY_BTN.src = '/icons/play.png';
+      },
+      onerror: function () {
+        MAIN_PLAYER.pause();
+        MAIN_PLAY_BTN.src = '/icons/play.png';
+        $router.showToast('Error');
       },
       onKeydown: function(evt) {
         if (MAIN_PLAYER.duration <= 0)
