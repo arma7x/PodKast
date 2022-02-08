@@ -623,6 +623,30 @@ window.addEventListener("load", () => {
     }
   });
 
+  const answerPage = function($router, title, answer) {
+    $router.push(
+      new Kai({
+        name: 'answerPage',
+        data: {
+          title: title,
+          answer: answer,
+        },
+        templateUrl: document.location.origin + '/templates/answerPage.html',
+        mounted: function() {
+          this.$router.setHeaderTitle(title);
+        },
+        unmounted: function() {},
+        methods: {},
+        softKeyText: { left: '', center: '', right: '' },
+        softKeyListener: {
+          left: function() {},
+          center: function() {},
+          right: function() {}
+        }
+      })
+    );
+  }
+
   const helpSupport = new Kai({
     name: 'helpSupport',
     data: {
@@ -630,39 +654,43 @@ window.addEventListener("load", () => {
       list: [
         {
           'question': 'Main Player & Mini Player',
-          'answer': `TODO`,
+          'answer': `1. If the user click LISTEN or PLAY on any podcast or episode(homescreen), it will play the audio using MAIN PLAYER<br>2. If the user click PLAY on any episode(not on homescreen), it will play the audio using MINI PLAYER<br>3. Both player play the audio on background while the app is being minimized`,
         },
         {
           'question': 'Subscribed Podcasts',
-          'answer': `TODO`,
+          'answer': `Users can subscribe to any podcast and click Sync Podcast to retrieve new episode. Podcast and episodes metadata available for offline usage`,
         },
         {
           'question': 'Favorite Episodes',
-          'answer': `TODO`,
+          'answer': `Users can add any episode to their favorite list. Favorite episodes metadata available for offline usage`,
         },
         {
           'question': 'Offline-First Apps',
-          'answer': `TODO`,
+          'answer': `Subscribed podcast(including episodes) & favorite episodes metadata available for offline usage. The audio file not available for offline usage, but the users can download the file by click Download Audio`,
         },
         {
           'question': 'Podcast Indicator',
-          'answer': `TODO`,
+          'answer': `<span class="kai-icon-mic" style="font-size:12px;"></span> The podcast is being played on Main Player<br><span>&#9733;</span> Subscribed podcast`,
         },
         {
           'question': 'Episode Indicator',
-          'answer': `TODO`,
+          'answer': `<img width="12px" height="12px" src="/icons/play_white.png" style="background-color:#000;margin-right:2px;"/>The audio is being played on Main Player<br><span class="kai-icon-arrow" style="font-size:12px;"></span> Current episode of podcast you listen<br><span class="kai-icon-favorite-on" style="font-size:12px;"></span> Bookmarked episode<br><span class="kai-icon-download" style="font-size:12px;"></span> Available for offline stream<br><span class="kai-icon-wifi" style="font-size:12px;"></span> Required network stream`,
         },
         {
           'question': 'Sleep Timer',
-          'answer': `TODO`,
+          'answer': `If the Sleep Timer is on, the app will automatically close(exit) while the screen-off or app was minimized. Sleep Timer disabled during audio downloading process`,
         },
         {
           'question': 'PodcastIndex Key & Secret',
-          'answer': `TODO`,
+          'answer': `PodKast using services from PodcastIndex to retrive podcast metadata. All the request data & delivering process is between PodKast KaiOS app and PodKast server. But the users can use their own PodcastIndex API key & secret, the request data & delivering process now is between PodKast KaiOS app and PodcastIndex server`,
+        },
+        {
+          'question': 'Use my own PodcastIndex Key & Secret',
+          'answer': `1. Go here https://api.podcastindex.org to get your own API key & secret.<br>2. Goto Setting page to setup your API key and secret<br>3. PodKast will scan qr-code that contain your API key & secret string<br>4. Please use any webservice to convert text(api & secret) to qr-code image`,
         },
         {
           'question': 'Keypad Shortcuts',
-          'answer': {goto: 'keypadShorcuts'},
+          'answer': `-> Center/Enter(play/pause)<br>-> Arrow Up(volume up)<br>-> Arrow Down(volume down)<br>-> Arrow Left(-10s)<br>-> Arrow Right(+10s)<br>-> Button Call(play from 0)<br>-> Button 1(-30s)<br>-> Button 3(+30s)<br>-> Button 4(-60s)<br>-> Button 6(+60s)<br>-> Button 7(-0.05% of total duration)<br>-> Button 9(+0.05% of total duration)<br>-> Button 2(+0.25 playback speed)<br>-> Button 5(reset playback speed to 1)<br>-> Button 8(-0.25 playback speed)`,
         },
       ]
     },
@@ -679,7 +707,7 @@ window.addEventListener("load", () => {
       center: function() {
         const t = this.data.list[this.verticalNavIndex];
         if (t != null) {
-          this.$router.showDialog('Answer', t['answer'], null, 'Close', undefined, ' ', undefined, undefined, undefined, () => {});
+          answerPage(this.$router, t['question'], t['answer']);
         }
       },
       right: function() {}
