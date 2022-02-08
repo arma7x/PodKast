@@ -629,8 +629,40 @@ window.addEventListener("load", () => {
       title: 'helpSupport',
       list: [
         {
-          'question': 'TODO',
+          'question': 'Main Player & Mini Player',
           'answer': `TODO`,
+        },
+        {
+          'question': 'Subscribed Podcasts',
+          'answer': `TODO`,
+        },
+        {
+          'question': 'Favorite Episodes',
+          'answer': `TODO`,
+        },
+        {
+          'question': 'Offline-First Apps',
+          'answer': `TODO`,
+        },
+        {
+          'question': 'Podcast Indicator',
+          'answer': `TODO`,
+        },
+        {
+          'question': 'Episode Indicator',
+          'answer': `TODO`,
+        },
+        {
+          'question': 'Sleep Timer',
+          'answer': `TODO`,
+        },
+        {
+          'question': 'PodcastIndex Key & Secret',
+          'answer': `TODO`,
+        },
+        {
+          'question': 'Keypad Shortcuts',
+          'answer': {goto: 'keypadShorcuts'},
         },
       ]
     },
