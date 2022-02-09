@@ -682,11 +682,11 @@ window.addEventListener("load", () => {
         },
         {
           'question': 'Sleep Timer',
-          'answer': `If the Sleep Timer is on, the app will automatically close(exit) while the screen-off or app was minimized. Sleep Timer disabled during audio downloading process`,
+          'answer': `If the Sleep Timer is on, the app will automatically close(exit) while the device screen were inactive or minimized. Sleep Timer disabled during audio downloading process`,
         },
         {
           'question': 'PodcastIndex Key & Secret',
-          'answer': `PodKast using services from PodcastIndex to retrive podcast metadata. All the request data & delivering process is between PodKast KaiOS app and PodKast server. But the users can use their own PodcastIndex API key & secret, the request data & delivering process now is between PodKast KaiOS app and PodcastIndex server`,
+          'answer': `PodKast uses PodcastIndex API to retrieve podcast metadata. All podcast metadata requests & transmissions are between PodKast app and PodKast server. However, users can use their own PodcastIndex API keys & secrets to interact directly with the PodcastIndex server`,
         },
         {
           'question': 'Use my own PodcastIndex Key & Secret',
@@ -1073,7 +1073,7 @@ window.addEventListener("load", () => {
   }
 
   const miniPlayer = function($router, episode, cb = () => {}) {
-    var MINI_THUMB, DURATION_SLIDER, CURRENT_TIME, DURATION, PLAY_BUTTON, THUMB_BUFF;
+    var MINI_THUMB, DURATION_SLIDER, CURRENT_TIME, DURATION, PLAY_BTN, THUMB_BUFF;
     $router.showBottomSheet(
       new Kai({
         name: 'miniPlayer',
