@@ -489,7 +489,6 @@ window.addEventListener("load", () => {
       return Promise.resolve(episodesObj[episode['id']]);
     })
     .catch((err) => {
-      miniPlayer($router, episode, cb);
       return Promise.reject(err);
     });
   }
@@ -1573,7 +1572,10 @@ window.addEventListener("load", () => {
               }, 1000);
               $router.pop();
             } else {
-              playEpisode($router, JSON.parse(JSON.stringify(this.data.list[this.verticalNavIndex])), true, this.methods.renderLeftKeyText);
+              playEpisode($router, JSON.parse(JSON.stringify(this.data.list[this.verticalNavIndex])), true, this.methods.renderLeftKeyText)
+              .catch((err) => {
+                $router.showToast('FAIL');
+              });
             }
           },
           right: function() {
