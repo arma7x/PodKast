@@ -197,18 +197,24 @@ window.addEventListener("load", () => {
       }
       return localforage.setItem(TABLE_SUBSCRIBED, list);
     })
-    .then(() =>{
-      $router.showToast(msg);
+    .then((saved) => {
       if (msg === 'SUBSCRIBED') {
         syncPodcast($router, podcast)
         .then((result) => {
           console.log(result);
+          $router.showToast(msg);
+          initTableSubscribed();
         })
         .catch((err) => {
           console.log(err);
+          $router.showToast(err.toString());
+          saved.splice(saved.indexOf(id), 1);
+          localforage.setItem(TABLE_SUBSCRIBED, saved);
         });
+      } else {
+        $router.showToast(msg);
+        initTableSubscribed();
       }
-      initTableSubscribed();
     })
     .catch((err) =>{
       console.log(err);
@@ -327,6 +333,9 @@ window.addEventListener("load", () => {
           if (Object.keys(localEpisodes).length > Object.keys(results[3]).length)
             newEpisode = Object.keys(localEpisodes).length - Object.keys(results[3]).length;
         }
+        if (Object.keys(localEpisodes).length === 0) {
+          return Promise.reject('Error SYNC');
+        }
         localPodcast['episodeCount'] = Object.keys(localEpisodes).length;
         return Promise.all([T_PODCASTS.setItem(id.toString(), localPodcast), T_EPISODES.setItem(id.toString(), localEpisodes), Promise.resolve(newEpisode)]);
       })
@@ -357,10 +366,18 @@ window.addEventListener("load", () => {
       if (savedPodcast != null) {
         T_EPISODES.getItem(podcast['id'].toString())
         .then((savedEpisodes) => {
-          setTimeout(() => {
-            playPodcast($router, savedEpisodes[savedPodcast['podkastCurrentEpisode']], true);
-          }, 1000);
-          $router.pop();
+          if (savedEpisodes == null || Object.keys(savedEpisodes).length === 0) {
+            T_PODCASTS.removeItem(podcast['id'].toString());
+            T_EPISODES.removeItem(podcast['id'].toString());
+            $router.showToast('FAIL');
+          } else if (savedEpisodes[savedPodcast['podkastCurrentEpisode']] == null) {
+            $router.showToast('Required SYNC');
+          } else {
+            setTimeout(() => {
+              playPodcast($router, savedEpisodes[savedPodcast['podkastCurrentEpisode']], true);
+            }, 1000);
+            $router.pop();
+          }
         })
         .catch((err) => {
           console.log(err);
@@ -1811,6 +1828,8 @@ window.addEventListener("load", () => {
                   if (result['newEpisode'] > 0) {
                     pushLocalNotification(result['podcast']['title'], `${result['newEpisode']} new episode`, true, true);
                     state.setState(TABLE_SUBSCRIBED, state.getState(TABLE_SUBSCRIBED));
+                  } else {
+                    $router.showToast('No new episodes');
                   }
                 })
                 .catch((err) => {
