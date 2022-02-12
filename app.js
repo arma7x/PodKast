@@ -8,7 +8,7 @@ var MAIN_DURATION;
 var MAIN_THUMB;
 var MAIN_TITLE;
 var MAIN_PLAY_BTN;
-var MAIN_THUMB_BUFF;
+var MAIN_BUFFERING;
 const APP_VERSION = '1.0.0';
 const KEY = 'PODCASTINDEX_KEY';
 const SECRET = 'PODCASTINDEX_SECRET';
@@ -33,6 +33,9 @@ window.addEventListener("load", () => {
   const MAIN_PLAYER = document.createElement("audio");
   MAIN_PLAYER.volume = 1;
   MAIN_PLAYER.mozAudioChannelType = 'content';
+  MAIN_PLAYER.addEventListener('loadedmetadata', (evt) => {
+    state.setState('MAIN_PLAYER_DURATION', evt.target.duration);
+  });
   MAIN_PLAYER.addEventListener('timeupdate', (evt) => {
     T_EPISODES.getItem(localStorage.getItem(ACTIVE_PODCAST).toString())
     .then((episodes) => {
@@ -155,6 +158,7 @@ window.addEventListener("load", () => {
   });
 
   const state = new KaiState({
+    MAIN_PLAYER_DURATION: 0,
     [CATEGORIES]: [],
     [TABLE_SUBSCRIBED]: [],
     [TABLE_BOOKMARKED]: {},
@@ -1882,7 +1886,7 @@ window.addEventListener("load", () => {
       MAIN_THUMB = document.getElementById('main_thumb');
       MAIN_TITLE = document.getElementById('main_title');
       MAIN_PLAY_BTN = document.getElementById('main_play_btn');
-      MAIN_THUMB_BUFF = document.getElementById('thumb_buffering');
+      MAIN_BUFFERING = document.getElementById('thumb_buffering');
       MAIN_CURRENT_TIME.innerHTML = convertTime(MAIN_PLAYER.currentTime);
       this.$state.addStateListener(ACTIVE_PODCAST, this.methods.activePodcastState);
       this.methods.activePodcastState(this.$state.getState(ACTIVE_PODCAST));
@@ -1898,9 +1902,10 @@ window.addEventListener("load", () => {
       MAIN_PLAYER.addEventListener('ended', this.methods.onended);
       MAIN_PLAYER.addEventListener('error', this.methods.onerror);
       document.addEventListener('keydown', this.methods.onKeydown);
-      MAIN_DURATION.innerHTML = convertTime(MAIN_PLAYER.duration);
-      MAIN_DURATION_SLIDER.value = MAIN_PLAYER.currentTime;
-      MAIN_DURATION_SLIDER.setAttribute("max", MAIN_PLAYER.duration);
+
+      MAIN_DURATION.innerHTML = convertTime(this.$state.getState('MAIN_PLAYER_DURATION'));
+      MAIN_DURATION_SLIDER.setAttribute("max", this.$state.getState('MAIN_PLAYER_DURATION'));
+
       this.methods.togglePlayIcon();
       this.methods.onratechange();
       if (this.$state.getState(AUTOPLAY) && BOOT == false && this.$state.getState(ACTIVE_PODCAST) && this.$state.getState(ACTIVE_EPISODE)) {
@@ -1927,15 +1932,15 @@ window.addEventListener("load", () => {
         const img = MAIN_THUMB;
         if (img == null)
           return;
-        MAIN_THUMB_BUFF.style.visibility = 'visible';
+        MAIN_BUFFERING.style.visibility = 'visible';
         if (podcastId == null || podcastId == false) {
-          MAIN_THUMB_BUFF.style.visibility = 'hidden';
+          MAIN_BUFFERING.style.visibility = 'hidden';
           img.src = '/icons/icon112x112.png';
           return;
         }
         img.onload = () => {
           if (img.complete)
-            MAIN_THUMB_BUFF.style.visibility = 'hidden';
+            MAIN_BUFFERING.style.visibility = 'hidden';
         }
         T_PODCASTS.getItem(podcastId.toString())
         .then((podcast) => {
@@ -1966,18 +1971,14 @@ window.addEventListener("load", () => {
         });
       },
       onloadedmetadata: function(evt) {
+        MAIN_BUFFERING.style.visibility = 'hidden';
         MAIN_DURATION.innerHTML = convertTime(evt.target.duration);
         MAIN_DURATION_SLIDER.setAttribute("max", evt.target.duration);
       },
       ontimeupdate: function(evt) {
         MAIN_CURRENT_TIME.innerHTML = convertTime(evt.target.currentTime);
-        MAIN_DURATION.innerHTML = convertTime(evt.target.duration);
         MAIN_DURATION_SLIDER.value = evt.target.currentTime;
-        MAIN_DURATION_SLIDER.setAttribute("max", evt.target.duration);
         MAIN_PLAY_BTN.src = '/icons/pause.png';
-        //if (MAIN_PLAYER.buffered.length > 0) {
-        //  console.log("Start: " + MAIN_PLAYER.buffered.start(0) + " End: "  + MAIN_PLAYER.buffered.end(MAIN_PLAYER.buffered.length - 1));
-        //}
       },
       onpause: function() {
         MAIN_PLAY_BTN.src = '/icons/play.png';
@@ -1986,12 +1987,12 @@ window.addEventListener("load", () => {
         MAIN_PLAY_BTN.src = '/icons/pause.png';
       },
       onseeking: function(evt) {
-        MAIN_THUMB_BUFF.style.visibility = 'visible';
+        MAIN_BUFFERING.style.visibility = 'visible';
         MAIN_CURRENT_TIME.innerHTML = convertTime(evt.target.currentTime);
         MAIN_DURATION_SLIDER.value = evt.target.currentTime;
       },
       onseeked: function(evt) {
-        MAIN_THUMB_BUFF.style.visibility = 'hidden';
+        MAIN_BUFFERING.style.visibility = 'hidden';
       },
       onratechange: function() {
         this.$router.setSoftKeyCenterText(`${MAIN_PLAYER.playbackRate}x`);
