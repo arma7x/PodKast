@@ -205,7 +205,7 @@ window.addEventListener("load", () => {
       if (msg === 'SUBSCRIBED') {
         syncPodcast($router, podcast)
         .then((result) => {
-          console.log(result);
+          // console.log(result);
           $router.showToast(msg);
           initTableSubscribed();
         })
@@ -314,29 +314,48 @@ window.addEventListener("load", () => {
       .then((results) => {
         var localPodcast = results[1];
         if (localPodcast == null) {
-          console.log('Podcast !Cached:', id);
+          // console.log('Podcast !Cached:', id);
           localPodcast = {};
           localPodcast['podkastCurrentEpisode'] = results[2][results[2].length - 1]['id'];
         }
         localPodcast = Object.assign(localPodcast, results[0].response.feed);
+        var uncachedEpisodes = {};
         var localEpisodes = results[3];
         if (localEpisodes == null) {
           localEpisodes = {};
         }
         results[2].forEach((episode) => {
           if (localEpisodes[episode['id']] == null) { // !CACHE
-            console.log('Podcast Ep !Cached:', id, episode['id']);
+            // console.log('Podcast Ep !Cached:', id, episode['id']);
             localEpisodes[episode['id']] = {};
             localEpisodes[episode['id']]['podkastLocalPath'] = false;
             localEpisodes[episode['id']]['podkastLastDuration'] = 0;
           }
+          uncachedEpisodes[episode['id']] = episode;
           localEpisodes[episode['id']] = Object.assign(localEpisodes[episode['id']], episode);
         });
-        var newEpisode = 0;
+        var newEpisode = 0; // DEBUG
         if (results[3] != null && Object.keys(results[3]).length > 0) {
-          if (Object.keys(localEpisodes).length > Object.keys(results[3]).length)
-            newEpisode = Object.keys(localEpisodes).length - Object.keys(results[3]).length;
+          console.log('Check new episodes', Object.keys(uncachedEpisodes).length, Object.keys(results[3]).length);
+          if (Object.keys(uncachedEpisodes).length > Object.keys(results[3]).length) {
+            newEpisode = Object.keys(uncachedEpisodes).length - Object.keys(results[3]).length;
+          } else if (Object.keys(uncachedEpisodes).length < Object.keys(results[3]).length) {
+            var c = 0;
+            for (var t in localEpisodes) {
+              if (uncachedEpisodes[t] == null) {
+                console.log('Ep was removed: ', t, localEpisodes[t]['title']);
+                delete localEpisodes[t];
+                if (t === localPodcast['podkastCurrentEpisode']) {
+                  localPodcast['podkastCurrentEpisode'] = results[2][results[2].length - 1]['id'];
+                }
+                c++;
+              }
+            }
+            newEpisode = c > 0 ? -c : 0;
+            console.log('Removed Episodes: ', c);
+          }
         }
+        console.log('New episodes:', newEpisode);
         if (Object.keys(localEpisodes).length === 0) {
           return Promise.reject('Error SYNC');
         }
@@ -477,7 +496,7 @@ window.addEventListener("load", () => {
       }
       var tempEpisode = episodesObj[episode['id']];
       if (tempEpisode == null) { // !CACHE
-        console.log('Podcast Ep !Cached:', episode['feedId'], episode['id']);
+        // console.log('Podcast Ep !Cached:', episode['feedId'], episode['id']);
         tempEpisode = {};
         tempEpisode['podkastLocalPath'] = episode['podkastLocalPath'] || false;
         tempEpisode['podkastLastDuration'] = episode['podkastLastDuration'] || 0;
@@ -574,34 +593,46 @@ window.addEventListener("load", () => {
         TABLE_SRC.getItem(id)
         .then((blob) => {
           if (blob == null) {
-            const req = new XMLHttpRequest({ mozSystem: true });
-            req.responseType = 'blob';
-            req.onreadystatechange = function() {
-              if (req.readyState == 4) {
-                if (req.status >= 200 && req.status <= 399) {
-                  TABLE_SRC.setItem(id, req.response)
-                  .then((imgBlob) => {
-                    if (thumbHash[id] == null) {
-                      const blobURL = window.URL.createObjectURL(imgBlob);
-                      thumbHash[id] = blobURL;
-                      resolve(blobURL);
-                    } else {
-                      resolve(thumbHash[id]);
-                    }
-                  }).catch((err) => {
+            var mirrorURL = url;
+            xhr('GET', 'https://malaysiaapi.herokuapp.com/cloudinary/api/resize', {}, {'url': btoa(url)}, {})
+            .then((result) => {
+              if (result.response.url)
+                mirrorURL = result.response.url;
+            })
+            .catch((err) => {
+              console.log(err);
+            })
+            .finally(() => {
+              const req = new XMLHttpRequest({ mozSystem: true });
+              req.responseType = 'blob';
+              req.onreadystatechange = function() {
+                if (req.readyState == 4) {
+                  if (req.status >= 200 && req.status <= 399) {
+                    TABLE_SRC.setItem(id, req.response)
+                    .then((imgBlob) => {
+                      if (thumbHash[id] == null) {
+                        const blobURL = window.URL.createObjectURL(imgBlob);
+                        thumbHash[id] = blobURL;
+                        resolve(blobURL);
+                      } else {
+                        resolve(thumbHash[id]);
+                      }
+                    }).catch((err) => {
+                      const localURL = '/icons/icon112x112.png';
+                      thumbHash[id] = localURL;
+                      resolve(localURL);
+                    });
+                  } else {
                     const localURL = '/icons/icon112x112.png';
                     thumbHash[id] = localURL;
                     resolve(localURL);
-                  });
-                } else {
-                  const localURL = '/icons/icon112x112.png';
-                  thumbHash[id] = localURL;
-                  resolve(localURL);
+                  }
                 }
-              }
-            };
-            req.open('GET', url, true);
-            req.send();
+              };
+              // console.log('FETCH:', mirrorURL);
+              req.open('GET', mirrorURL, true);
+              req.send();
+            });
           } else {
             var blobURL;
             if (blob instanceof Blob) {
@@ -1126,7 +1157,7 @@ window.addEventListener("load", () => {
           THUMB_BUFF.style.visibility = 'visible';
           if (episode['feedImage'] == null || episode['feedImage'] == '')
             episode['feedImage'] = '/icons/icon112x112.png';
-          if (episode['image'] == null || episode['image'] == '')
+          // if (episode['image'] == null || episode['image'] == '') // SAVE DATA
             episode['image'] = episode['feedImage'];
           getThumb(episode['image'])
           .then((url) => {
@@ -1397,7 +1428,7 @@ window.addEventListener("load", () => {
               i['podkastBookmark'] = false;
               if (i['feedImage'] == '' || i['feedImage'] == null)
                 i['feedImage'] = '/icons/icon112x112.png';
-              if (i['image'] == '' || i['image'] == null)
+              // if (i['image'] == '' || i['image'] == null) // SAVE DATA
                 i['image'] = i['feedImage'];
               if (bookmarkList[i['feedId']] != null) {
                 if (bookmarkList[i['feedId']].indexOf(i['id']) > -1)
@@ -1410,7 +1441,7 @@ window.addEventListener("load", () => {
               const pages = [];
               const temp = JSON.parse(JSON.stringify(data));
               if (temp.length === 0) {
-                $router.showToast('Empty');
+                $router.showToast('No episoded available'); // Empty
                 $router.pop();
                 return;
               }
@@ -1441,7 +1472,7 @@ window.addEventListener("load", () => {
           processDataNull: function(bookmarkList) {
             if (Object.keys(bookmarkList).length === 0) {
               this.setData({ list: [] });
-              $router.showToast('Empty');
+              $router.showToast('No favorite episodes'); // Empty
               $router.pop();
               return;
             }
@@ -1458,7 +1489,7 @@ window.addEventListener("load", () => {
                   if (episodes[id]) {
                     if (episodes[id]['feedImage'] == '' || episodes[id]['feedImage'] == null)
                       episodes[id]['feedImage'] = '/icons/icon112x112.png';
-                    if (episodes[id]['image'] == '' || episodes[id]['image'] == null)
+                    // if (episodes[id]['image'] == '' || episodes[id]['image'] == null) // SAVE DATA
                       episodes[id]['image'] = episodes[id]['feedImage'];
                     episodes[id]['podkastThumb'] = this.data.listThumb[id] || '/icons/loading.gif';
                     episodes[id]['podkastTitle'] = episodes[id]['title'].length >= 41 ? episodes[id]['title'].slice(0, 38) + '...' : episodes[id]['title'];
@@ -1512,7 +1543,7 @@ window.addEventListener("load", () => {
             .then((result) => {
               playEpisode($router, result, false)
               .then((saved) => {
-                console.log(saved);
+                // console.log(saved);
                 for (var x in this.data.pages[this.data.pageCursor]) {
                   if (this.data.pages[this.data.pageCursor][x]['id'] === episode['id']) {
                     this.data.pages[this.data.pageCursor][x]['podkastLocalPath'] = saved['podkastLocalPath'];
@@ -1686,7 +1717,7 @@ window.addEventListener("load", () => {
           },
           processData: function(subscribedList) {
             if (data.length === 0) {
-              $router.showToast('Empty');
+              $router.showToast('Your search did not match any podcast'); // Empty
               $router.pop();
               return;
             }
@@ -1709,7 +1740,7 @@ window.addEventListener("load", () => {
           processDataNull: function(subscribedList) {
             if (subscribedList.length === 0) {
               this.setData({ list: [] });
-              $router.showToast('Empty');
+              $router.showToast('No subscribed podcast'); // Empty
               $router.pop();
               return;
             }
@@ -1834,6 +1865,8 @@ window.addEventListener("load", () => {
                   if (result['newEpisode'] > 0) {
                     pushLocalNotification(result['podcast']['title'], `${result['newEpisode']} new episode`, true, true);
                     state.setState(TABLE_SUBSCRIBED, state.getState(TABLE_SUBSCRIBED));
+                  } else if (result['newEpisode'] < 0) {
+                    $router.showToast(`No new episodes, but some was removed. ${result['newEpisode']}`);
                   } else {
                     $router.showToast('No new episodes');
                   }
@@ -2209,9 +2242,9 @@ window.addEventListener("load", () => {
                         })
                         .catch((err) => {
                           console.log(err);
+                          this.$router.showToast('Network Error');
                         })
                         .finally(() => {
-                          this.$router.showToast('Network Error');
                           this.$router.hideLoading();
                         });
                       });
