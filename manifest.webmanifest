@@ -25,7 +25,7 @@
     }
   ],
   "b2g_features": {
-    "version": "3.0.2",
+    "version": "3.0.3",
     "type": "privileged",
     "core": true,
     "default_locale": "en-US",
@@ -33,6 +33,7 @@
       "name": "arma7x",
       "url": "https://www.kaiostech.com"
     },
+    "userAgentInfo": "PodKast",
     "origin": "podkast",
     "permissions": {
       "device-storage:sdcard": {

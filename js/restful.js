@@ -46,7 +46,7 @@ const getHeaders = function() {
   var apiSecret = localStorage.getItem(SECRET);
   const unixTime= parseInt(new Date().getTime() / 1000);
   return {
-    "User-Agent": "KaiOS PodKast",
+    "User-Agent": "KaiOS",
     "X-Auth-Key": apiKey.toString(),
     "X-Auth-Date": unixTime.toString(),
     "Authorization": sha1(apiKey.toString() + apiSecret.toString() + unixTime.toString()).toString()

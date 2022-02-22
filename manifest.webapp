@@ -1,5 +1,5 @@
 {
-  "version": "1.0.2",
+  "version": "1.0.3",
   "name": "PodKast",
   "description": "With PodKast, you can play the latest episodes from your favourite shows, explore podcast recommendations just for you and manage your listening activity.",
   "launch_path": "/index.html",
@@ -18,6 +18,7 @@
     "name": "arma7x",
     "url": "https://www.kaiostech.com"
   },
+  "userAgentInfo": "PodKast",
   "origin": "app://podkast.arma7x.com",
   "type": "privileged",
   "permissions": {

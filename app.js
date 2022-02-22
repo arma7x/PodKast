@@ -9,7 +9,7 @@ var MAIN_THUMB;
 var MAIN_TITLE;
 var MAIN_PLAY_BTN;
 var MAIN_BUFFERING;
-const APP_VERSION = '1.0.0';
+const APP_VERSION = '1.0.3';
 const KEY = 'PODCASTINDEX_KEY';
 const SECRET = 'PODCASTINDEX_SECRET';
 const DB_NAME = 'PODKAST';
@@ -197,6 +197,8 @@ window.addEventListener("load", () => {
         msg = 'SUBSCRIBED';
       } else {
         list.splice(list.indexOf(id), 1);
+        T_EPISODES.removeItem(id.toString());
+        T_PODCASTS.removeItem(id.toString());
         msg = 'UNSUBSCRIBED';
       }
       return localforage.setItem(TABLE_SUBSCRIBED, list);
@@ -343,7 +345,7 @@ window.addEventListener("load", () => {
             var c = 0;
             for (var t in localEpisodes) {
               if (uncachedEpisodes[t] == null) {
-                console.log('Ep was removed: ', t, localEpisodes[t]['title']);
+                // console.log('Ep was removed: ', t, localEpisodes[t]['title']);
                 delete localEpisodes[t];
                 if (t === localPodcast['podkastCurrentEpisode']) {
                   localPodcast['podkastCurrentEpisode'] = results[2][results[2].length - 1]['id'];
@@ -352,10 +354,10 @@ window.addEventListener("load", () => {
               }
             }
             newEpisode = c > 0 ? -c : 0;
-            console.log('Removed Episodes: ', c);
+            // console.log('Removed Episodes: ', c);
           }
         }
-        console.log('New episodes:', newEpisode);
+        // console.log('New episodes:', newEpisode);
         if (Object.keys(localEpisodes).length === 0) {
           return Promise.reject('Error SYNC');
         }
@@ -560,7 +562,7 @@ window.addEventListener("load", () => {
     return new Promise((resolve, reject) => {
       verifyDomainSSL(podcast.url || podcast.originalUrl)
       .then((url) => {
-        getRSSFromServer(url, {}, {'content-type': podcast.contentType}, podcast)
+        getRSSFromServer(url, {}, {'content-type': podcast.contentType, 'User-Agent': 'KaiOS RSS'}, podcast)
         .then((episodes) => {
           resolve(episodes);
         })
@@ -569,8 +571,8 @@ window.addEventListener("load", () => {
         });
       })
       .catch((err) => {
-        const obj = podcastIndex.makeRss(podcast.url || podcast.originalUrl, {}, {'content-type': podcast.contentType}, true);
-        resolve(getRSSFromServer(obj.url, obj.query, {}, podcast))
+        const obj = podcastIndex.makeRss(podcast.url || podcast.originalUrl, {}, {'content-type': podcast.contentType, 'User-Agent': 'KaiOS RSS'}, true);
+        resolve(getRSSFromServer(obj.url, obj.query, obj.headers, podcast))
         .then((episodes) => {
           resolve(episodes);
         })
@@ -995,6 +997,7 @@ window.addEventListener("load", () => {
             req.onreadystatechange = this.methods.onreadystatechange;
             req.onerror = this.methods.onerror;
             start = new Date().getTime();
+            req.setRequestHeader('User-Agent', 'KaiOS Downloader');
             req.send();
           },
           unmounted: function() {
@@ -1866,6 +1869,7 @@ window.addEventListener("load", () => {
                     pushLocalNotification(result['podcast']['title'], `${result['newEpisode']} new episode`, true, true);
                     state.setState(TABLE_SUBSCRIBED, state.getState(TABLE_SUBSCRIBED));
                   } else if (result['newEpisode'] < 0) {
+                    pushLocalNotification(result['podcast']['title'], 'Podcast has been successfully updated', true, true);
                     $router.showToast(`No new episodes, but some was removed. ${result['newEpisode']}`);
                   } else {
                     $router.showToast('No new episodes');
@@ -1977,6 +1981,10 @@ window.addEventListener("load", () => {
         }
         T_PODCASTS.getItem(podcastId.toString())
         .then((podcast) => {
+          if (podcast == null) {
+            img.src = '/icons/icon112x112.png';
+            return;
+          }
           if (podcast['image'] == null || podcast['image'] == '')
             podcast['image'] = '/icons/icon112x112.png';
           getThumb(podcast['image'])
