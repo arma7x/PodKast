@@ -1,6 +1,8 @@
 var BOOT = false;
 var SLEEP_TIMER = null;
 var WAKE_LOCK = null;
+var SCREEN_LOCK = null;
+var IGNORE_KAIADS = false;
 var QR_READER = null;
 var MAIN_DURATION_SLIDER;
 var MAIN_CURRENT_TIME;
@@ -955,6 +957,7 @@ window.addEventListener("load", () => {
   }
 
   const downloaderPopup = function($router, episode, cb = () => {}) {
+    const lock = navigator.b2g || navigator;
     delete episode['podkastTitle'];
     delete episode['podkastThumb'];
     delete episode['podkastBookmark'];
@@ -988,8 +991,8 @@ window.addEventListener("load", () => {
             right: function() {}
           },
           mounted: function() {
-            const lock = navigator.b2g || navigator;
             WAKE_LOCK = lock.requestWakeLock('cpu');
+            SCREEN_LOCK = lock.requestWakeLock('screen');
             BAR = document.getElementById('download_bar');
             CUR = document.getElementById('download_cur');
             MAX = document.getElementById('download_max');
@@ -999,11 +1002,17 @@ window.addEventListener("load", () => {
             start = new Date().getTime();
             req.setRequestHeader('User-Agent', 'KaiOS Downloader');
             req.send();
+            IGNORE_KAIADS = true;
           },
           unmounted: function() {
+            IGNORE_KAIADS = false;
             if (WAKE_LOCK) {
               WAKE_LOCK.unlock();
               WAKE_LOCK = null;
+            }
+            if (SCREEN_LOCK) {
+              SCREEN_LOCK.unlock();
+              SCREEN_LOCK = null;
             }
             resolve(episode);
             setTimeout(cb, 100);
@@ -1032,28 +1041,14 @@ window.addEventListener("load", () => {
                   if (MIME[evt.currentTarget.response.type] != null) {
                     ext = MIME[evt.currentTarget.response.type];
                   }
-                  var localPath = ['podkast', 'cache', episode['feedId']];
-                  if (DS.deviceStorage.storageName != '') {
-                    localPath = [DS.deviceStorage.storageName, ...localPath];
+                  saveAs(evt.currentTarget.response, `${episode['feedId']}_${episode['id']}.${ext}`);
+                  episode['podkastLocalPath'] = `${DS.trailingSlash}${DS.deviceStorage.storageName}/downloads/${episode['feedId']}_${episode['id']}.${ext}`;
+                  $router.setSoftKeyCenterText('SUCCESS');
+                  $router.setSoftKeyLeftText('Close');
+                  if (WAKE_LOCK) {
+                    WAKE_LOCK.unlock();
+                    WAKE_LOCK = null;
                   }
-                  DS.addFile(localPath, `${episode['id']}.${ext}`, evt.currentTarget.response)
-                  .then((file) => {
-                    episode['podkastLocalPath'] = file.name;
-                    $router.setSoftKeyCenterText('SUCCESS');
-                    $router.setSoftKeyLeftText('Close');
-                    if (WAKE_LOCK) {
-                      WAKE_LOCK.unlock();
-                      WAKE_LOCK = null;
-                    }
-                    if (document.visibilityState === 'hidden') {
-                      pushLocalNotification(episode['title'], 'Done downloading', true, true);
-                    }
-                  })
-                  .catch((err) => {
-                    console.log(err);
-                    $router.setSoftKeyCenterText('FAIL');
-                    $router.setSoftKeyLeftText('Exit');
-                  });
                 }
               }
             },
@@ -1226,8 +1221,10 @@ window.addEventListener("load", () => {
             console.log(err);
             $router.showToast('Network Error');
           });
+          IGNORE_KAIADS = true;
         },
         unmounted: function() {
+          IGNORE_KAIADS = false;
           MINI_PLAYER.pause();
           MINI_PLAYER.removeEventListener('loadedmetadata', this.methods.onloadedmetadata);
           MINI_PLAYER.removeEventListener('timeupdate', this.methods.ontimeupdate);
@@ -1549,6 +1546,12 @@ window.addEventListener("load", () => {
                 // console.log(saved);
                 for (var x in this.data.pages[this.data.pageCursor]) {
                   if (this.data.pages[this.data.pageCursor][x]['id'] === episode['id']) {
+                    for (var i in data) {
+                      if (data[i]['id'] === episode['id']) {
+                        data[i]['podkastLocalPath'] = saved['podkastLocalPath'];
+                        break;
+                      }
+                    }
                     this.data.pages[this.data.pageCursor][x]['podkastLocalPath'] = saved['podkastLocalPath'];
                     this.methods.gotoPage(this.data.pageCursor);
                     break;
@@ -2445,7 +2448,7 @@ window.addEventListener("load", () => {
       }
     }
     console.log('Display Ads:', display);
-    if (!display)
+    if (!display || IGNORE_KAIADS)
       return;
     getKaiAd({
       publisher: 'ac3140f7-08d6-46d9-aa6f-d861720fba66',
