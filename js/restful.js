@@ -69,11 +69,11 @@ const podcastIndex = {
     return { url, query, headers };
   },
   makeRss: function(url, query = {}, headers = {}) {
-    var base = 'https://malaysiaapi.herokuapp.com/podcastindex/v1/content-proxy';
+    var base = 'https://malaysiaapi-arma7x.koyeb.app/podcastindex/v1/content-proxy';
     return this.prepUrl(base, url, query, headers, true);
   },
   makeUrl: function(url, query = {}, headers = {}) {
-    var base = 'https://malaysiaapi.herokuapp.com/podcastindex/v1/proxy';
+    var base = 'https://malaysiaapi-arma7x.koyeb.app/podcastindex/v1/proxy';
     return this.prepUrl(base, url, query, headers, false);
   },
   getCategories: function() {

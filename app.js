@@ -598,7 +598,7 @@ window.addEventListener("load", () => {
         .then((blob) => {
           if (blob == null) {
             var mirrorURL = url;
-            xhr('GET', 'https://malaysiaapi.herokuapp.com/cloudinary/api/resize', {}, {'url': btoa(url)}, {})
+            xhr('GET', 'https://malaysiaapi-arma7x.koyeb.app/cloudinary/api/resize', {}, {'url': btoa(url)}, {})
             .then((result) => {
               if (result.response.url)
                 mirrorURL = result.response.url;
