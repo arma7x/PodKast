@@ -1,10 +1,8 @@
-# KaiKit
+# PodKast
 
-## JS framework for KaiOS
+> With PodKast, you can play the latest episodes from your favourite shows, explore podcast recommendations just for you and manage your listening activity
 
-## TODO DOCUMENTATION
+API: https://podcastindex.org/
 
-## Licence
 
 [MIT](https://opensource.org/licenses/MIT)
-
